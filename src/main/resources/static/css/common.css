@@ -1,0 +1,317 @@
+/* ══════════════════════════════════
+   Folio — Common Layout Styles
+══════════════════════════════════ */
+
+/* ── Theme Variables ── */
+:root,
+[data-theme="dark"] {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: rgba(14, 14, 14, 0.95);
+    --bg-header: rgba(10, 10, 10, 0.85);
+    --bg-hover: rgba(255, 255, 255, 0.05);
+    --bg-active: rgba(255, 255, 255, 0.08);
+
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --text-muted: rgba(255, 255, 255, 0.45);
+    --text-faint: rgba(255, 255, 255, 0.35);
+
+    --border-color: rgba(255, 255, 255, 0.06);
+    --border-hover: rgba(255, 255, 255, 0.12);
+
+    --danger-text: rgba(255, 120, 120, 0.8);
+    --danger-bg: rgba(255, 80, 80, 0.06);
+}
+
+[data-theme="light"] {
+    --bg-primary: #f5f5f7;
+    --bg-secondary: #ffffff;
+    --bg-header: rgba(255, 255, 255, 0.9);
+    --bg-hover: rgba(0, 0, 0, 0.04);
+    --bg-active: rgba(0, 0, 0, 0.07);
+
+    --text-primary: #1a1a1a;
+    --text-secondary: #333333;
+    --text-muted: rgba(0, 0, 0, 0.5);
+    --text-faint: rgba(0, 0, 0, 0.35);
+
+    --border-color: rgba(0, 0, 0, 0.08);
+    --border-hover: rgba(0, 0, 0, 0.15);
+
+    --danger-text: #dc3545;
+    --danger-bg: rgba(220, 53, 69, 0.06);
+}
+
+/* ── Reset ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+                 system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-secondary);
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* ── Header ── */
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    background: var(--bg-header);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 100;
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.header-logo {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: 0.12em;
+}
+
+/* ── Menu Toggle (Mobile/Tablet) ── */
+.menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.menu-toggle svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text-muted);
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+}
+
+.menu-toggle:hover {
+    background: var(--bg-hover);
+}
+
+.menu-toggle:hover svg {
+    stroke: var(--text-primary);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.header-user {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.header-logout {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-faint);
+    transition: color 0.2s;
+}
+
+.header-logout:hover {
+    color: var(--text-primary);
+}
+
+/* ── App Body ── */
+.app-body {
+    display: flex;
+    padding-top: 56px;
+    min-height: 100vh;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    bottom: 0;
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.2rem 0;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+    z-index: 90;
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0 0.6rem;
+}
+
+.sidebar-menu li {
+    margin-bottom: 0.2rem;
+}
+
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-menu a svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    flex-shrink: 0;
+}
+
+.sidebar-menu a:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+.sidebar-menu a.active {
+    color: var(--text-primary);
+    background: var(--bg-active);
+}
+
+/* ── Sidebar Bottom ── */
+.sidebar-bottom {
+    padding: 0 0.6rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.8rem;
+    margin-top: 0.8rem;
+}
+
+.sidebar-logout {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--text-faint);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-logout svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+}
+
+.sidebar-logout:hover {
+    color: var(--danger-text);
+    background: var(--danger-bg);
+}
+
+/* ── Content Area ── */
+.app-content {
+    margin-left: 220px;
+    flex: 1;
+    padding: 2rem;
+    min-height: calc(100vh - 56px);
+}
+
+/* ── Sidebar Overlay (Mobile/Tablet) ── */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 89;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+}
+
+/* ── Responsive ── */
+
+/* Tablet & Mobile */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: flex;
+    }
+
+    .sidebar {
+        width: 240px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+        z-index: 95;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    .sidebar-menu a span,
+    .sidebar-logout span {
+        display: inline;
+    }
+
+    .sidebar-menu a {
+        justify-content: flex-start;
+    }
+
+    .sidebar-logout {
+        justify-content: flex-start;
+    }
+
+    .app-content {
+        margin-left: 0;
+        padding: 1.5rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .app-content {
+        padding: 1.2rem;
+    }
+}
