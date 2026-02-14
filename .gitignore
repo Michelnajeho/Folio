@@ -38,3 +38,6 @@ out/
 
 ### Application Config ###
 **/application.yml
+
+### Docker ###
+documents/docker/
