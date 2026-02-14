@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folio - Trading Record</title>
+    <link rel="stylesheet" as="style" crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
+    <link rel="stylesheet" th:href="@{/css/index.css}"/>
+</head>
+<body>
+
+<div id="shader-bg"></div>
+
+<!-- Back -->
+<button class="btn-back" id="btnBack" onclick="goBack()">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+</button>
+
+<!-- SCENE 1: Landing -->
+<div class="landing" id="landing">
+    <h1>FOLIO</h1>
+    <p class="subtitle">Trading Record Manager</p>
+
+    <button class="rainbow-btn" onclick="goLogin()">
+        <span class="rainbow-glow"></span>
+        Get Started <span class="arrow">→</span>
+    </button>
+</div>
+
+<!-- SCENE 2: Login -->
+<div class="login-scene" id="loginScene">
+    <div class="login-container">
+        <p class="login-title">Welcome back</p>
+        <p class="login-desc">Sign in to your account to continue</p>
+
+        <div class="login-card">
+            <div class="error-msg"
+                 th:if="${param.error}"
+                 th:style="'display: block'">
+                아이디 또는 비밀번호를 확인해주세요.
+            </div>
+
+            <form method="post" th:action="@{/login}" autocomplete="off">
+                <div class="form-group">
+                    <label for="username">ID</label>
+                    <input type="text" id="username" name="username"
+                           placeholder="Enter your ID" required/>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password"
+                           placeholder="Enter your password" required/>
+                </div>
+                <button type="submit" class="btn-submit">Sign In</button>
+            </form>
+
+            <div class="login-footer">
+                Don't have an account? <a href="/join">Sign up</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/89/three.min.js"></script>
+<script th:src="@{/js/index.js}"></script>
+
+</body>
+</html>

@@ -1,0 +1,403 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+                 system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', sans-serif;
+    background-color: #000;
+    color: #e0e0e0;
+    overflow: hidden;
+}
+
+/* ── Shader ── */
+#shader-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    transition: filter 0.4s ease, opacity 0.4s ease;
+}
+
+#shader-bg.dimmed {
+    filter: blur(12px) brightness(0.35);
+    opacity: 0.6;
+}
+
+/* ══════════════════════════════════
+   SCENE 1 — Landing
+══════════════════════════════════ */
+.landing {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.35s ease;
+}
+
+.landing.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.landing h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 40px rgba(100, 180, 255, 0.3);
+    margin-bottom: 0.5rem;
+}
+
+.landing .subtitle {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.75);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+    margin-bottom: 3rem;
+}
+
+/* ── Rainbow Button ── */
+.rainbow-btn {
+    position: relative;
+    padding: 0.8rem 2.6rem;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: #fff;
+    background: #111;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    z-index: 0;
+    transition: transform 0.25s ease;
+}
+
+.rainbow-btn::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 14px;
+    background: linear-gradient(
+        90deg,
+        #ff6b6b, #feca57, #48dbfb, #ff9ff3,
+        #54a0ff, #5f27cd, #ff6b6b
+    );
+    background-size: 300% 100%;
+    animation: rainbow-move 4s linear infinite;
+    z-index: -2;
+}
+
+.rainbow-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: #111;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+}
+
+.rainbow-btn:hover {
+    transform: translateY(-2px);
+}
+
+.rainbow-btn:hover::after {
+    opacity: 0.85;
+}
+
+.rainbow-btn:active {
+    transform: translateY(0);
+}
+
+.rainbow-btn .arrow {
+    display: inline-block;
+    margin-left: 0.5rem;
+    transition: transform 0.25s ease;
+}
+
+.rainbow-btn:hover .arrow {
+    transform: translateX(3px);
+}
+
+@keyframes rainbow-move {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+}
+
+/* ── Rainbow glow ── */
+.rainbow-glow {
+    position: absolute;
+    inset: -2px;
+    border-radius: 14px;
+    background: linear-gradient(
+        90deg,
+        #ff6b6b, #feca57, #48dbfb, #ff9ff3,
+        #54a0ff, #5f27cd, #ff6b6b
+    );
+    background-size: 300% 100%;
+    animation: rainbow-move 4s linear infinite;
+    filter: blur(16px);
+    opacity: 0.4;
+    z-index: -3;
+    transition: opacity 0.3s ease;
+}
+
+.rainbow-btn:hover .rainbow-glow {
+    opacity: 0.65;
+}
+
+/* ══════════════════════════════════
+   SCENE 2 — Login
+══════════════════════════════════ */
+.login-scene {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease 0.1s;
+}
+
+.login-scene.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.login-container {
+    width: 400px;
+    text-align: center;
+}
+
+.login-container .login-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.4rem;
+}
+
+.login-container .login-desc {
+    font-size: 0.88rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.45);
+    margin-bottom: 2.2rem;
+}
+
+/* ── Login Card ── */
+.login-card {
+    padding: 2.2rem 2rem 2rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    text-align: left;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+
+.form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.2);
+    font-weight: 300;
+}
+
+.form-group input:focus {
+    border-color: rgba(120, 160, 255, 0.5);
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: 0 0 20px rgba(100, 140, 255, 0.08);
+}
+
+.btn-submit {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.82rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: #000;
+    background: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.btn-submit:active {
+    transform: translateY(0);
+}
+
+/* ── Divider ── */
+.login-footer {
+    margin-top: 1.4rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.login-footer a {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.login-footer a:hover {
+    color: #fff;
+}
+
+/* ── Back Button ── */
+.btn-back {
+    position: fixed;
+    top: 2rem;
+    left: 2rem;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.4);
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, color 0.2s ease;
+}
+
+.btn-back.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.btn-back:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.btn-back svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
+/* ── Error ── */
+.error-msg {
+    display: none;
+    margin-bottom: 1rem;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.78rem;
+    color: #ff8a8a;
+    background: rgba(255, 80, 80, 0.08);
+    border: 1px solid rgba(255, 80, 80, 0.15);
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* ── Responsive ── */
+
+/* Tablet */
+@media (max-width: 768px) {
+    .landing h1 {
+        font-size: 3.2rem;
+        letter-spacing: 0.12em;
+    }
+    .landing .subtitle {
+        font-size: 0.9rem;
+        letter-spacing: 0.2em;
+    }
+    .login-container {
+        width: 380px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .landing h1 {
+        font-size: 2.4rem;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.3rem;
+    }
+    .landing .subtitle {
+        font-size: 0.72rem;
+        letter-spacing: 0.15em;
+        margin-bottom: 2.2rem;
+    }
+    .rainbow-btn {
+        padding: 0.7rem 2rem;
+        font-size: 0.82rem;
+    }
+    .login-container {
+        width: 92vw;
+    }
+    .login-container .login-title {
+        font-size: 1.4rem;
+    }
+    .login-container .login-desc {
+        font-size: 0.8rem;
+        margin-bottom: 1.6rem;
+    }
+    .login-card {
+        padding: 1.8rem 1.4rem 1.6rem;
+    }
+    .btn-back {
+        top: 1rem;
+        left: 1rem;
+    }
+}
+
+/* Very small */
+@media (max-width: 360px) {
+    .landing h1 {
+        font-size: 2rem;
+    }
+    .landing .subtitle {
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+    }
+    .login-container {
+        width: 96vw;
+    }
+}
