@@ -5,6 +5,7 @@ import com.trade.folio.domain.account.service.AccountService;
 import com.trade.folio.domain.member.entity.Member;
 import com.trade.folio.domain.member.mapper.MemberMapper;
 import com.trade.folio.domain.trade.entity.Trade;
+import com.trade.folio.domain.trade.mapper.DailyTradeSummaryMapper;
 import com.trade.folio.domain.trade.service.TradeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -15,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.Principal;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 
 @Controller
@@ -26,8 +25,7 @@ public class TradingHistoryController {
     private final AccountService accountService;
     private final MemberMapper memberMapper;
     private final TradeService tradeService;
-
-    private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
+    private final DailyTradeSummaryMapper dailyTradeSummaryMapper;
 
     @GetMapping("/trading-history")
     public String tradingHistory(
@@ -51,14 +49,21 @@ public class TradingHistoryController {
             selectedAccount = accounts.get(0);
         }
 
-        /* 선택된 계좌의 거래 기록 조회 */
+        /* 선택된 계좌의 거래 기록 조회 (테이블 표시용) */
         List<Trade> trades = Collections.emptyList();
         if (selectedAccount != null) {
             trades = tradeService.getTradesByAccountId(selectedAccount.getId());
         }
 
-        /* 통계 계산 */
-        Map<String, Object> stats = computeStats(trades);
+        /* 통계 계산: 요약 테이블에서 조회 */
+        Map<String, Object> stats;
+        if (selectedAccount != null) {
+            Map<String, Object> rawStats = dailyTradeSummaryMapper.findAccountTotalStats(selectedAccount.getId());
+            Map<String, Object> rawMonthStats = dailyTradeSummaryMapper.findAccountMonthStats(selectedAccount.getId());
+            stats = formatHistoryStats(rawStats, rawMonthStats, trades);
+        } else {
+            stats = emptyHistoryStats();
+        }
 
         model.addAttribute("menu", "trading-history");
         model.addAttribute("accounts", accounts);
@@ -69,64 +74,26 @@ public class TradingHistoryController {
     }
 
     /**
-     * trades 목록을 기반으로 8개 통계 카드에 필요한 데이터 계산
+     * 요약 테이블 데이터 + trades(streak용)를 기반으로 8개 통계 카드 데이터 포맷
      */
-    private Map<String, Object> computeStats(List<Trade> trades) {
-        Map<String, Object> stats = new HashMap<>();
+    private Map<String, Object> formatHistoryStats(
+            Map<String, Object> raw, Map<String, Object> rawMonth, List<Trade> trades) {
 
-        int totalTrades = trades.size();
+        int totalTrades = ((Number) raw.get("total_trades")).intValue();
+        if (totalTrades == 0) {
+            return emptyHistoryStats();
+        }
+
+        Map<String, Object> stats = new HashMap<>();
         stats.put("totalTrades", totalTrades);
 
-        if (totalTrades == 0) {
-            stats.put("winRate", "-");
-            stats.put("winRatePositive", false);
-            stats.put("profitFactor", "-");
-            stats.put("profitFactorPositive", false);
-            stats.put("profitFactorNegative", false);
-            stats.put("avgPnl", BigDecimal.ZERO);
-            stats.put("bestTrade", BigDecimal.ZERO);
-            stats.put("worstTrade", BigDecimal.ZERO);
-            stats.put("streak", "-");
-            stats.put("streakPositive", false);
-            stats.put("streakNegative", false);
-            stats.put("monthPnl", BigDecimal.ZERO);
-            return stats;
-        }
-
-        int wins = 0;
-        BigDecimal totalPnl = BigDecimal.ZERO;
-        BigDecimal totalProfit = BigDecimal.ZERO;
-        BigDecimal totalLoss = BigDecimal.ZERO;
-        BigDecimal best = null;
-        BigDecimal worst = null;
-        BigDecimal monthPnl = BigDecimal.ZERO;
-
-        LocalDate nowKst = LocalDate.now(SEOUL);
-        int currentMonth = nowKst.getMonthValue();
-        int currentYear = nowKst.getYear();
-
-        for (Trade trade : trades) {
-            BigDecimal pnl = trade.getPnl();
-            totalPnl = totalPnl.add(pnl);
-
-            if (pnl.signum() > 0) {
-                wins++;
-                totalProfit = totalProfit.add(pnl);
-            } else if (pnl.signum() < 0) {
-                totalLoss = totalLoss.add(pnl.abs());
-            }
-
-            if (best == null || pnl.compareTo(best) > 0) best = pnl;
-            if (worst == null || pnl.compareTo(worst) < 0) worst = pnl;
-
-            /* 이번 달 P&L */
-            if (trade.getTradedAtKst() != null) {
-                LocalDate tradeDate = trade.getTradedAtKst().toLocalDate();
-                if (tradeDate.getMonthValue() == currentMonth && tradeDate.getYear() == currentYear) {
-                    monthPnl = monthPnl.add(pnl);
-                }
-            }
-        }
+        int wins = ((Number) raw.get("win_count")).intValue();
+        BigDecimal totalPnl = (BigDecimal) raw.get("total_pnl");
+        BigDecimal totalProfit = (BigDecimal) raw.get("total_profit");
+        BigDecimal totalLoss = (BigDecimal) raw.get("total_loss");
+        BigDecimal bestPnl = (BigDecimal) raw.get("best_pnl");
+        BigDecimal worstPnl = (BigDecimal) raw.get("worst_pnl");
+        BigDecimal monthPnl = (BigDecimal) rawMonth.get("total_pnl");
 
         /* Win Rate */
         BigDecimal winRate = BigDecimal.valueOf(wins)
@@ -156,8 +123,8 @@ public class TradingHistoryController {
         stats.put("avgPnl", avgPnl);
 
         /* Best / Worst */
-        stats.put("bestTrade", best);
-        stats.put("worstTrade", worst);
+        stats.put("bestTrade", bestPnl != null ? bestPnl : BigDecimal.ZERO);
+        stats.put("worstTrade", worstPnl != null ? worstPnl : BigDecimal.ZERO);
 
         /* Streak: 최근 거래부터 연속 승/패 카운트 (trades는 traded_at DESC 정렬) */
         int streak = 0;
@@ -181,8 +148,26 @@ public class TradingHistoryController {
         stats.put("streakNegative", "L".equals(streakType));
 
         /* This Month P&L */
-        stats.put("monthPnl", monthPnl);
+        stats.put("monthPnl", monthPnl != null ? monthPnl : BigDecimal.ZERO);
 
+        return stats;
+    }
+
+    private Map<String, Object> emptyHistoryStats() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalTrades", 0);
+        stats.put("winRate", "-");
+        stats.put("winRatePositive", false);
+        stats.put("profitFactor", "-");
+        stats.put("profitFactorPositive", false);
+        stats.put("profitFactorNegative", false);
+        stats.put("avgPnl", BigDecimal.ZERO);
+        stats.put("bestTrade", BigDecimal.ZERO);
+        stats.put("worstTrade", BigDecimal.ZERO);
+        stats.put("streak", "-");
+        stats.put("streakPositive", false);
+        stats.put("streakNegative", false);
+        stats.put("monthPnl", BigDecimal.ZERO);
         return stats;
     }
 }

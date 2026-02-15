@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,6 +25,9 @@ public class TradeService {
     private final TradeMapper tradeMapper;
     private final AccountMapper accountMapper;
     private final BalanceSnapshotService balanceSnapshotService;
+    private final DailyTradeSummaryService dailyTradeSummaryService;
+
+    private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
 
     private static final Set<String> VALID_TYPES = Set.of("STOCK", "CRYPTO", "FUTURES");
     private static final Set<String> VALID_POSITIONS = Set.of("LONG", "SHORT");
@@ -63,6 +68,9 @@ public class TradeService {
         /* 잔고 스냅샷 기록 */
         Account updated = accountMapper.findById(accountId);
         balanceSnapshotService.recordSnapshot(accountId, updated.getBalance());
+
+        /* 일별 거래 요약 갱신 */
+        dailyTradeSummaryService.refreshSummary(accountId);
 
         return trade;
     }
@@ -111,6 +119,10 @@ public class TradeService {
         Account updated = accountMapper.findById(trade.getAccountId());
         balanceSnapshotService.recordSnapshot(trade.getAccountId(), updated.getBalance());
 
+        /* 거래 날짜(KST) — 요약 갱신 시 사용 */
+        LocalDate tradeDateKst = trade.getTradedAt()
+                .atZoneSameInstant(SEOUL).toLocalDate();
+
         /* 3) 거래 레코드 업데이트 */
         trade.setType(type);
         trade.setTicker(request.getTicker().trim().toUpperCase());
@@ -118,6 +130,9 @@ public class TradeService {
         trade.setPnl(request.getPnl());
         trade.setMemo(request.getMemo());
         tradeMapper.update(trade);
+
+        /* 일별 거래 요약 갱신 */
+        dailyTradeSummaryService.refreshSummary(trade.getAccountId(), tradeDateKst);
 
         return trade;
     }
@@ -180,7 +195,14 @@ public class TradeService {
         Account updated = accountMapper.findById(trade.getAccountId());
         balanceSnapshotService.recordSnapshot(trade.getAccountId(), updated.getBalance());
 
+        /* 거래 날짜(KST) — 삭제 전에 미리 계산 */
+        LocalDate tradeDateKst = trade.getTradedAt()
+                .atZoneSameInstant(SEOUL).toLocalDate();
+
         /* 레코드 삭제 */
         tradeMapper.deleteById(tradeId);
+
+        /* 일별 거래 요약 갱신 (삭제 후 재집계) */
+        dailyTradeSummaryService.refreshSummary(trade.getAccountId(), tradeDateKst);
     }
 }

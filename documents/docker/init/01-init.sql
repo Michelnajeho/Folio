@@ -4,6 +4,8 @@
 CREATE SCHEMA IF NOT EXISTS folio;
 
 -- 기존 테이블 삭제 (FK 의존성 역순)
+DROP TABLE IF EXISTS folio.daily_trade_summary;
+DROP TABLE IF EXISTS folio.trade;
 DROP TABLE IF EXISTS folio.account_balance_snapshot;
 DROP TABLE IF EXISTS folio.account_transaction;
 DROP TABLE IF EXISTS folio.account;
@@ -191,3 +193,42 @@ COMMENT ON COLUMN folio.trade.created_at   IS '생성일';
 -- 인덱스
 CREATE INDEX idx_trade_account_id ON folio.trade (account_id);
 CREATE INDEX idx_trade_traded_at  ON folio.trade (traded_at);
+
+-- 일별 거래 요약 테이블
+CREATE TABLE folio.daily_trade_summary (
+    id              BIGINT          GENERATED ALWAYS AS IDENTITY PRIMARY KEY,   -- 요약 ID
+    account_id      BIGINT          NOT NULL,                                   -- 계좌 FK
+    summary_date    DATE            NOT NULL,                                   -- 요약 날짜 (KST 기준)
+    trade_count     INT             NOT NULL DEFAULT 0,                         -- 총 거래 건수
+    win_count       INT             NOT NULL DEFAULT 0,                         -- 수익 거래 건수 (pnl > 0)
+    loss_count      INT             NOT NULL DEFAULT 0,                         -- 손실 거래 건수 (pnl < 0)
+    total_pnl       NUMERIC(18,4)   NOT NULL DEFAULT 0,                        -- 총 P&L
+    total_profit    NUMERIC(18,4)   NOT NULL DEFAULT 0,                        -- 수익 합계 (pnl > 0의 합)
+    total_loss      NUMERIC(18,4)   NOT NULL DEFAULT 0,                        -- 손실 합계 (|pnl < 0|의 합, 양수로 저장)
+    best_pnl        NUMERIC(18,4)   DEFAULT NULL,                              -- 최고 P&L
+    worst_pnl       NUMERIC(18,4)   DEFAULT NULL,                              -- 최저 P&L
+    created_at      TIMESTAMPTZ     NOT NULL DEFAULT NOW(),                    -- 생성일
+    updated_at      TIMESTAMPTZ     DEFAULT NULL,                              -- 수정일
+
+    CONSTRAINT fk_daily_summary_account FOREIGN KEY (account_id) REFERENCES folio.account (id) ON DELETE CASCADE,
+    CONSTRAINT uq_daily_summary_account_date UNIQUE (account_id, summary_date)
+);
+
+COMMENT ON TABLE  folio.daily_trade_summary                    IS '일별 거래 요약 (KST 기준)';
+COMMENT ON COLUMN folio.daily_trade_summary.id                 IS '요약 ID';
+COMMENT ON COLUMN folio.daily_trade_summary.account_id         IS '계좌 FK';
+COMMENT ON COLUMN folio.daily_trade_summary.summary_date       IS '요약 날짜 (KST 기준)';
+COMMENT ON COLUMN folio.daily_trade_summary.trade_count        IS '총 거래 건수';
+COMMENT ON COLUMN folio.daily_trade_summary.win_count          IS '수익 거래 건수';
+COMMENT ON COLUMN folio.daily_trade_summary.loss_count         IS '손실 거래 건수';
+COMMENT ON COLUMN folio.daily_trade_summary.total_pnl          IS '총 P&L';
+COMMENT ON COLUMN folio.daily_trade_summary.total_profit       IS '수익 합계';
+COMMENT ON COLUMN folio.daily_trade_summary.total_loss         IS '손실 합계 (양수)';
+COMMENT ON COLUMN folio.daily_trade_summary.best_pnl           IS '최고 P&L';
+COMMENT ON COLUMN folio.daily_trade_summary.worst_pnl          IS '최저 P&L';
+COMMENT ON COLUMN folio.daily_trade_summary.created_at         IS '생성일';
+COMMENT ON COLUMN folio.daily_trade_summary.updated_at         IS '수정일';
+
+-- 인덱스
+CREATE INDEX idx_daily_summary_account_id ON folio.daily_trade_summary (account_id);
+CREATE INDEX idx_daily_summary_date       ON folio.daily_trade_summary (summary_date);

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trade.folio.domain.trade.mapper.DailyTradeSummaryMapper">
+
+    <!--
+        UPSERT: 특정 계좌+날짜의 raw trade 테이블을 집계하여 요약 행 삽입/갱신
+        HAVING COUNT(*) > 0 으로 거래 없는 날은 INSERT 하지 않음
+    -->
+    <insert id="upsertFromTrades">
+        INSERT INTO folio.daily_trade_summary
+            (account_id, summary_date,
+             trade_count, win_count, loss_count,
+             total_pnl, total_profit, total_loss,
+             best_pnl, worst_pnl, updated_at)
+        SELECT
+            #{accountId},
+            #{summaryDate},
+            COUNT(*),
+            COUNT(*) FILTER (WHERE pnl &gt; 0),
+            COUNT(*) FILTER (WHERE pnl &lt; 0),
+            COALESCE(SUM(pnl), 0),
+            COALESCE(SUM(pnl) FILTER (WHERE pnl &gt; 0), 0),
+            COALESCE(SUM(ABS(pnl)) FILTER (WHERE pnl &lt; 0), 0),
+            MAX(pnl),
+            MIN(pnl),
+            NOW()
+        FROM folio.trade
+        WHERE account_id = #{accountId}
+          AND (traded_at AT TIME ZONE 'Asia/Seoul')::DATE = #{summaryDate}
+        HAVING COUNT(*) &gt; 0
+        ON CONFLICT (account_id, summary_date)
+        DO UPDATE SET
+            trade_count  = EXCLUDED.trade_count,
+            win_count    = EXCLUDED.win_count,
+            loss_count   = EXCLUDED.loss_count,
+            total_pnl    = EXCLUDED.total_pnl,
+            total_profit = EXCLUDED.total_profit,
+            total_loss   = EXCLUDED.total_loss,
+            best_pnl     = EXCLUDED.best_pnl,
+            worst_pnl    = EXCLUDED.worst_pnl,
+            updated_at   = NOW()
+    </insert>
+
+    <!--
+        삭제: 해당 날짜에 거래가 0건이면 요약 행도 삭제
+    -->
+    <delete id="deleteIfEmpty">
+        DELETE FROM folio.daily_trade_summary
+        WHERE account_id = #{accountId}
+          AND summary_date = #{summaryDate}
+          AND NOT EXISTS (
+              SELECT 1 FROM folio.trade
+              WHERE account_id = #{accountId}
+                AND (traded_at AT TIME ZONE 'Asia/Seoul')::DATE = #{summaryDate}
+          )
+    </delete>
+
+    <!--
+        회원의 전체 계좌 날짜별 요약 (대시보드 캘린더 + 히트맵 용)
+    -->
+    <select id="findDailySummaryByMemberId" resultType="java.util.HashMap">
+        SELECT TO_CHAR(s.summary_date, 'YYYY-MM-DD')  AS trade_date,
+               SUM(s.trade_count)                      AS trade_count,
+               SUM(s.total_pnl)                        AS daily_pnl
+          FROM folio.daily_trade_summary s
+          JOIN folio.account a ON a.id = s.account_id
+         WHERE a.member_id = #{memberId}
+         GROUP BY s.summary_date
+         ORDER BY s.summary_date
+    </select>
+
+    <!--
+        회원 전체 계좌 누적 통계 (대시보드 스탯 카드 용)
+    -->
+    <select id="findMemberTotalStats" resultType="java.util.HashMap">
+        SELECT COALESCE(SUM(s.trade_count), 0)   AS total_trades,
+               COALESCE(SUM(s.win_count), 0)     AS win_count,
+               COALESCE(SUM(s.loss_count), 0)    AS loss_count,
+               COALESCE(SUM(s.total_pnl), 0)     AS total_pnl,
+               COALESCE(SUM(s.total_profit), 0)  AS total_profit,
+               COALESCE(SUM(s.total_loss), 0)    AS total_loss,
+               MAX(s.best_pnl)                    AS best_pnl,
+               MIN(s.worst_pnl)                   AS worst_pnl
+          FROM folio.daily_trade_summary s
+          JOIN folio.account a ON a.id = s.account_id
+         WHERE a.member_id = #{memberId}
+    </select>
+
+    <!--
+        특정 계좌 전체 누적 통계 (Trading History 스탯 카드 용)
+    -->
+    <select id="findAccountTotalStats" resultType="java.util.HashMap">
+        SELECT COALESCE(SUM(s.trade_count), 0)   AS total_trades,
+               COALESCE(SUM(s.win_count), 0)     AS win_count,
+               COALESCE(SUM(s.loss_count), 0)    AS loss_count,
+               COALESCE(SUM(s.total_pnl), 0)     AS total_pnl,
+               COALESCE(SUM(s.total_profit), 0)  AS total_profit,
+               COALESCE(SUM(s.total_loss), 0)    AS total_loss,
+               MAX(s.best_pnl)                    AS best_pnl,
+               MIN(s.worst_pnl)                   AS worst_pnl
+          FROM folio.daily_trade_summary s
+         WHERE s.account_id = #{accountId}
+    </select>
+
+    <!--
+        특정 계좌의 이번 달(KST) 통계
+    -->
+    <select id="findAccountMonthStats" resultType="java.util.HashMap">
+        SELECT COALESCE(SUM(s.trade_count), 0)   AS total_trades,
+               COALESCE(SUM(s.total_pnl), 0)     AS total_pnl
+          FROM folio.daily_trade_summary s
+         WHERE s.account_id = #{accountId}
+           AND DATE_TRUNC('month', s.summary_date)
+             = DATE_TRUNC('month', (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Seoul')::DATE)
+    </select>
+
+</mapper>
