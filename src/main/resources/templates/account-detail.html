@@ -85,7 +85,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="tx : ${transactions}">
-                    <td th:text="${#temporals.format(tx.transactedAt, 'yyyy-MM-dd HH:mm')}">2026-02-15 14:30</td>
+                    <td th:text="${#temporals.format(tx.transactedAtKst, 'yyyy-MM-dd HH:mm')}">2026-02-15 14:30</td>
                     <td>
                         <span class="acd-type-badge"
                               th:classappend="${tx.type == 'DEPOSIT' ? 'deposit' : 'withdrawal'}"

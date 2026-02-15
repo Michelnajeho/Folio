@@ -91,7 +91,63 @@
     margin-bottom: 2rem;
 }
 
+/* ── Activity Row (Balance + Calendar) ── */
+.activity-row {
+    display: flex;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+/* ── Balance Overview Card ── */
+.balance-overview {
+    flex-shrink: 0;
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1.6rem 1.4rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: border-color 0.2s, background 0.3s;
+}
+
+.balance-overview:hover {
+    border-color: var(--border-hover);
+}
+
+.balance-overview-label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+}
+
+.balance-overview-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 0.6rem;
+}
+
+.balance-overview-sub {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.balance-overview-accounts {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
 .activity-card {
+    flex: 1;
+    min-width: 0;
     padding: 1.4rem;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
@@ -291,12 +347,221 @@
 }
 
 /* ══════════════════════════════════
+   Trade Calendar (Monthly)
+══════════════════════════════════ */
+
+.trade-cal-section {
+    margin-bottom: 2rem;
+}
+
+.trade-cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.trade-cal-header .section-title {
+    margin-bottom: 0;
+}
+
+.trade-cal-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.trade-cal-nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.trade-cal-nav-btn:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-hover);
+}
+
+.trade-cal-month {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 140px;
+    text-align: center;
+}
+
+.trade-cal-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.2rem;
+    transition: border-color 0.2s, background 0.3s;
+}
+
+.trade-cal-card:hover {
+    border-color: var(--border-hover);
+}
+
+/* ── Calendar Grid ── */
+.trade-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+/* 요일 헤더 */
+.tc-header {
+    padding: 0.4rem 0;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--text-faint);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* 날짜 셀 */
+.tc-cell {
+    min-height: 90px;
+    padding: 0.5rem 0.6rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.tc-cell:hover:not(.tc-empty) {
+    border-color: var(--border-hover);
+}
+
+.tc-cell.tc-empty {
+    background: transparent;
+    border-color: transparent;
+}
+
+/* ── Today: Moving gradient border ── */
+.tc-cell.tc-today {
+    position: relative;
+    border: none;
+    background: transparent;
+}
+
+.tc-cell.tc-today::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    background: conic-gradient(
+        from var(--border-angle, 0deg),
+        #4ade80 0%,
+        #60a5fa 25%,
+        #a78bfa 50%,
+        #f59e0b 75%,
+        #4ade80 100%
+    );
+    animation: borderRotate 3s linear infinite;
+}
+
+.tc-cell.tc-today::after {
+    content: '';
+    position: absolute;
+    inset: 1.5px;
+    border-radius: 6.5px;
+    background: var(--bg-primary);
+}
+
+/* Today 셀 내부 콘텐츠를 pseudo-element 위로 */
+.tc-cell.tc-today > * {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes borderRotate {
+    to { --border-angle: 360deg; }
+}
+
+@property --border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+/* 날짜 숫자 */
+.tc-day {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    line-height: 1;
+}
+
+.tc-day-today {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+/* 트레이딩 정보 */
+.tc-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-top: auto;
+}
+
+.tc-trades {
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    font-weight: 500;
+}
+
+.tc-pnl-pos {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #4ade80;
+}
+
+.tc-pnl-neg {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #f87171;
+}
+
+/* ══════════════════════════════════
    Responsive
 ══════════════════════════════════ */
 
 @media (max-width: 768px) {
+    .activity-row {
+        flex-direction: column;
+    }
+    .balance-overview {
+        width: 100%;
+        padding: 1.2rem;
+    }
+    .balance-overview-value {
+        font-size: 1.5rem;
+    }
     .activity-card {
         padding: 1rem;
+    }
+    .tc-cell {
+        min-height: 72px;
+        padding: 0.35rem 0.4rem;
+    }
+    .tc-pnl-pos,
+    .tc-pnl-neg {
+        font-size: 0.72rem;
     }
     .cal-cell,
     .activity-legend-cell {
@@ -322,6 +587,26 @@
     }
     .stat-grid {
         grid-template-columns: 1fr;
+    }
+    .trade-cal-card {
+        padding: 0.6rem;
+    }
+    .trade-cal-grid {
+        gap: 2px;
+    }
+    .tc-cell {
+        min-height: 56px;
+        padding: 0.25rem 0.3rem;
+    }
+    .tc-day {
+        font-size: 0.72rem;
+    }
+    .tc-trades {
+        font-size: 0.6rem;
+    }
+    .tc-pnl-pos,
+    .tc-pnl-neg {
+        font-size: 0.65rem;
     }
     .cal-cell,
     .activity-legend-cell {

@@ -32,26 +32,53 @@
         </div>
     </div>
 
-    <!-- Activity Calendar -->
+    <!-- Activity Row: Balance + Calendar -->
     <div class="activity-section">
         <h2 class="section-title">Activity</h2>
-        <div class="activity-card">
-            <div class="activity-calendar" id="activityCalendar"></div>
-            <div class="activity-legend">
-                <span class="activity-legend-label">Less</span>
-                <span class="activity-legend-cell" data-level="0"></span>
-                <span class="activity-legend-cell" data-level="1"></span>
-                <span class="activity-legend-cell" data-level="2"></span>
-                <span class="activity-legend-cell" data-level="3"></span>
-                <span class="activity-legend-cell" data-level="4"></span>
-                <span class="activity-legend-label">More</span>
+        <div class="activity-row">
+            <!-- Total Balance Card -->
+            <div class="balance-overview">
+                <div class="balance-overview-label">Total Balance</div>
+                <div class="balance-overview-value"
+                     th:text="${'$' + #numbers.formatDecimal(summary.totalBalance, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                <div class="balance-overview-sub">
+                    <span class="balance-overview-accounts"
+                          th:text="${summary.accountCount + ' account' + (summary.accountCount != 1 ? 's' : '')}">0 accounts</span>
+                </div>
+            </div>
+            <!-- Calendar -->
+            <div class="activity-card">
+                <div class="activity-calendar" id="activityCalendar"></div>
+                <div class="activity-legend">
+                    <span class="activity-legend-label">Less</span>
+                    <span class="activity-legend-cell" data-level="0"></span>
+                    <span class="activity-legend-cell" data-level="1"></span>
+                    <span class="activity-legend-cell" data-level="2"></span>
+                    <span class="activity-legend-cell" data-level="3"></span>
+                    <span class="activity-legend-cell" data-level="4"></span>
+                    <span class="activity-legend-label">More</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <h2 class="section-title">Recent Trades</h2>
-    <div class="empty-state">
-        <p>아직 기록된 거래가 없습니다.</p>
+    <!-- Monthly Trade Calendar -->
+    <div class="trade-cal-section">
+        <div class="trade-cal-header">
+            <h2 class="section-title">Trade Calendar</h2>
+            <div class="trade-cal-nav">
+                <button class="trade-cal-nav-btn" id="tcPrev" type="button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <span class="trade-cal-month" id="tcMonth">February 2026</span>
+                <button class="trade-cal-nav-btn" id="tcNext" type="button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="trade-cal-card">
+            <div class="trade-cal-grid" id="tradeCalendar"></div>
+        </div>
     </div>
 
     <script>
@@ -162,6 +189,129 @@
             function fmtDate(d) {
                 return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
             }
+        })();
+
+        /* ══════════════════════════════════
+           Trade Calendar (Monthly)
+        ══════════════════════════════════ */
+        (function () {
+            var grid = document.getElementById('tradeCalendar');
+            var monthLabel = document.getElementById('tcMonth');
+            var prevBtn = document.getElementById('tcPrev');
+            var nextBtn = document.getElementById('tcNext');
+            if (!grid) return;
+
+            var monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            var dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            var now = new Date();
+            var viewYear = now.getFullYear();
+            var viewMonth = now.getMonth();
+
+            /* ── 임시 데이터: { 'YYYY-MM-DD': { trades: N, pnl: N } } ── */
+            var sampleData = {};
+            (function generateSample() {
+                var y = now.getFullYear();
+                var m = now.getMonth();
+                /* 이번 달 샘플 */
+                var entries = [
+                    [1, 3, 520], [2, 1, -180], [4, 2, 340],
+                    [5, 4, 1280], [7, 1, -90], [8, 2, 460],
+                    [10, 3, -320], [11, 5, 2150], [12, 2, 780],
+                    [13, 1, -440], [14, 3, 960]
+                ];
+                for (var i = 0; i < entries.length; i++) {
+                    var key = y + '-' + pad(m + 1) + '-' + pad(entries[i][0]);
+                    sampleData[key] = { trades: entries[i][1], pnl: entries[i][2] };
+                }
+                /* 지난 달 샘플 */
+                var pm = m === 0 ? 11 : m - 1;
+                var py = m === 0 ? y - 1 : y;
+                var prevEntries = [
+                    [3, 2, 310], [5, 1, -150], [8, 3, 870],
+                    [10, 2, -260], [12, 4, 1540], [15, 1, 220],
+                    [18, 3, -680], [20, 2, 430], [22, 5, 2890],
+                    [25, 1, -120], [27, 3, 760], [28, 2, -340]
+                ];
+                for (var j = 0; j < prevEntries.length; j++) {
+                    var key2 = py + '-' + pad(pm + 1) + '-' + pad(prevEntries[j][0]);
+                    sampleData[key2] = { trades: prevEntries[j][1], pnl: prevEntries[j][2] };
+                }
+            })();
+
+            function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+            function render() {
+                monthLabel.textContent = monthNames[viewMonth] + ' ' + viewYear;
+
+                var firstDay = new Date(viewYear, viewMonth, 1).getDay();
+                var daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+                var today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                var html = '';
+
+                /* 요일 헤더 */
+                for (var h = 0; h < 7; h++) {
+                    html += '<div class="tc-header">' + dayHeaders[h] + '</div>';
+                }
+
+                /* 빈 칸 (1일 이전) */
+                for (var b = 0; b < firstDay; b++) {
+                    html += '<div class="tc-cell tc-empty"></div>';
+                }
+
+                /* 날짜 셀 */
+                for (var d = 1; d <= daysInMonth; d++) {
+                    var dateKey = viewYear + '-' + pad(viewMonth + 1) + '-' + pad(d);
+                    var cellDate = new Date(viewYear, viewMonth, d);
+                    var isToday = cellDate.getTime() === today.getTime();
+                    var data = sampleData[dateKey];
+
+                    var cls = 'tc-cell';
+                    if (isToday) cls += ' tc-today';
+
+                    html += '<div class="' + cls + '">';
+                    html += '<span class="tc-day' + (isToday ? ' tc-day-today' : '') + '">' + d + '</span>';
+
+                    if (data) {
+                        var pnlCls = data.pnl >= 0 ? 'tc-pnl-pos' : 'tc-pnl-neg';
+                        var pnlSign = data.pnl >= 0 ? '+' : '-';
+                        html += '<div class="tc-info">';
+                        html += '<span class="tc-trades">' + data.trades + ' trade' + (data.trades > 1 ? 's' : '') + '</span>';
+                        html += '<span class="' + pnlCls + '">' + pnlSign + '$' + Math.abs(data.pnl).toLocaleString() + '</span>';
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
+                }
+
+                /* 남은 빈 칸 (그리드 채우기) */
+                var totalCells = firstDay + daysInMonth;
+                var remainder = totalCells % 7;
+                if (remainder > 0) {
+                    for (var r = 0; r < 7 - remainder; r++) {
+                        html += '<div class="tc-cell tc-empty"></div>';
+                    }
+                }
+
+                grid.innerHTML = html;
+            }
+
+            prevBtn.addEventListener('click', function () {
+                viewMonth--;
+                if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+                render();
+            });
+
+            nextBtn.addEventListener('click', function () {
+                viewMonth++;
+                if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+                render();
+            });
+
+            render();
         })();
     </script>
 

@@ -6,7 +6,7 @@
 
     <insert id="upsert">
         INSERT INTO folio.account_balance_snapshot (account_id, balance, snapshot_date)
-        VALUES (#{accountId}, #{balance}, (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::DATE)
+        VALUES (#{accountId}, #{balance}, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Seoul')::DATE)
         ON CONFLICT (account_id, snapshot_date)
         DO UPDATE SET balance = EXCLUDED.balance
     </insert>
