@@ -9,8 +9,10 @@
         <a href="/dashboard" class="header-logo">FOLIO</a>
     </div>
     <div class="header-right">
-        <span class="header-user">Guest</span>
-        <a href="/" class="header-logout">Logout</a>
+        <span class="header-user" th:text="${#authentication.name}">Guest</span>
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <button type="submit" class="header-logout">Logout</button>
+        </form>
     </div>
 </header>
 </body>

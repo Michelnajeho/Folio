@@ -84,6 +84,199 @@ if (window.location.search.indexOf('error') !== -1) {
 }
 
 /* ══════════════════════════════════
+   Login Form — AJAX Submit
+══════════════════════════════════ */
+window.submitLoginForm = function (e) {
+    e.preventDefault();
+
+    var usernameVal = document.getElementById('username').value.trim();
+    var passwordVal = document.getElementById('password').value;
+    if (!usernameVal || !passwordVal) return false;
+
+    var btn = document.getElementById('btnLoginSubmit');
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+
+    var csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    var csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+    var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    headers[csrfHeader] = csrfToken;
+
+    fetch('/login', {
+        method: 'POST',
+        headers: headers,
+        body: 'username=' + encodeURIComponent(usernameVal) + '&password=' + encodeURIComponent(passwordVal)
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (res) {
+        if (res.success) {
+            document.getElementById('loginError').style.display = 'none';
+            /* 로그인 씬 페이드아웃 → 날짜 인트로 */
+            document.getElementById('loginScene').classList.remove('active');
+            document.getElementById('btnBack').classList.remove('visible');
+            setTimeout(function () {
+                showDateIntro();
+            }, TRANSITION_MS);
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Sign In';
+        }
+    })
+    .catch(function () {
+        document.getElementById('loginError').style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+    });
+
+    return false;
+};
+
+/* ══════════════════════════════════
+   Date Wheel Intro
+══════════════════════════════════ */
+function showDateIntro() {
+    var ITEM_HEIGHT = 60;
+    var VISIBLE_ITEMS = 3; /* 위 1 + 가운데 1 + 아래 1 */
+    var DOW_NAMES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+    var QUOTES = [
+        { text: '추세는 당신의 친구입니다.', author: 'Ed Seykota' },
+        { text: '손실은 짧게, 수익은 길게.', author: '' },
+        { text: '매매를 계획하고, 계획대로 매매하라.', author: '' },
+        { text: '리스크는 자신이 뭘 하고 있는지 모를 때 생긴다.', author: 'Warren Buffett' },
+        { text: '시장은 당신이 버틸 수 있는 것보다 더 오래 비합리적일 수 있다.', author: 'John Maynard Keynes' },
+        { text: '트레이딩에서 불가능한 일은 1년에 두 번쯤 일어난다.', author: 'Henri M. Simoes' },
+        { text: '성공적인 트레이더의 목표는 최선의 매매를 하는 것이다.', author: 'Alexander Elder' },
+        { text: '규율은 목표와 성취 사이의 다리이다.', author: 'Jim Rohn' },
+        { text: '옳고 그름이 중요한 게 아니라, 옳을 때 얼마나 버느냐가 중요하다.', author: 'George Soros' },
+        { text: '주식시장은 참을성 없는 사람의 돈을 참을성 있는 사람에게 옮기는 장치이다.', author: 'Warren Buffett' }
+    ];
+
+    /* 랜덤 격언 선택 */
+    var pick = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+    document.getElementById('dateQuote').textContent = '"' + pick.text + '"';
+    var authorEl = document.getElementById('dateAuthor');
+    authorEl.textContent = pick.author ? '— ' + pick.author : '';
+    authorEl.style.display = pick.author ? '' : 'none';
+
+    var now = new Date();
+    var yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    var targetYear = now.getFullYear();
+    var targetMonth = now.getMonth() + 1;
+    var targetDay = now.getDate();
+    var targetDow = now.getDay();
+
+    /* 각 휠에 들어갈 값 생성 */
+    function buildItems(values, targetIdx) {
+        /* targetIdx 위치에 타겟 값. 앞뒤로 버퍼 */
+        var items = [];
+        for (var i = 0; i < values.length; i++) {
+            items.push(values[i]);
+        }
+        return { items: items, targetIdx: targetIdx };
+    }
+
+    /* 연도: 작년 ~ 내년 */
+    var years = [targetYear - 2, targetYear - 1, targetYear, targetYear + 1, targetYear + 2];
+    var yearData = buildItems(years, 2);
+
+    /* 월: 1~12 */
+    var months = [];
+    for (var m = 1; m <= 12; m++) months.push(m);
+    var monthData = buildItems(months, targetMonth - 1);
+
+    /* 일: 전날 주변부터 오늘까지 */
+    var daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+    var days = [];
+    for (var d = 1; d <= daysInMonth; d++) days.push(d);
+    var dayData = buildItems(days, targetDay - 1);
+
+    /* 요일: 전체 7일 */
+    var dowData = buildItems(DOW_NAMES, targetDow);
+
+    /* 어제 인덱스 */
+    var yesterdayDayIdx = yesterday.getDate() - 1;
+    var yesterdayDowIdx = yesterday.getDay();
+    var yesterdayMonthIdx = yesterday.getMonth(); /* 0-based month, 이미 0-indexed */
+    var yesterdayYearIdx = years.indexOf(yesterday.getFullYear());
+
+    /* 휠 스트립 채우기 */
+    function populateWheel(wheelId, data, formatFn) {
+        var strip = document.querySelector('#' + wheelId + ' .date-wheel-strip');
+        strip.innerHTML = '';
+        for (var i = 0; i < data.items.length; i++) {
+            var div = document.createElement('div');
+            div.className = 'wheel-item';
+            div.textContent = formatFn ? formatFn(data.items[i]) : data.items[i];
+            strip.appendChild(div);
+        }
+        return strip;
+    }
+
+    function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+    var yearStrip = populateWheel('wheelYear', yearData, function (v) { return '' + v; });
+    var monthStrip = populateWheel('wheelMonth', monthData, pad2);
+    var dayStrip = populateWheel('wheelDay', dayData, pad2);
+    var dowStrip = populateWheel('wheelDow', dowData, function (v) { return v; });
+
+    /* 초기 위치: 어제 날짜 */
+    function setPosition(strip, idx) {
+        var offset = -(idx * ITEM_HEIGHT) + ITEM_HEIGHT; /* 가운데 = 1번째 슬롯 (0-indexed 에서 offset) */
+        strip.style.transition = 'none';
+        strip.style.transform = 'translateY(' + offset + 'px)';
+    }
+
+    function setActiveItem(strip, idx) {
+        var items = strip.querySelectorAll('.wheel-item');
+        for (var i = 0; i < items.length; i++) {
+            items[i].classList.remove('active');
+        }
+        if (items[idx]) items[idx].classList.add('active');
+    }
+
+    /* 초기: 어제 위치 */
+    setPosition(yearStrip, yesterdayYearIdx);
+    setActiveItem(yearStrip, yesterdayYearIdx);
+    setPosition(monthStrip, yesterdayMonthIdx);
+    setActiveItem(monthStrip, yesterdayMonthIdx);
+    setPosition(dayStrip, yesterdayDayIdx);
+    setActiveItem(dayStrip, yesterdayDayIdx);
+    setPosition(dowStrip, yesterdayDowIdx);
+    setActiveItem(dowStrip, yesterdayDowIdx);
+
+    /* 인트로 씬 페이드인 */
+    var dateIntro = document.getElementById('dateIntro');
+    dateIntro.classList.add('active');
+
+    /* 잠시 후 오늘 날짜로 스핀 */
+    setTimeout(function () {
+        function spinTo(strip, targetIdx, delay) {
+            setTimeout(function () {
+                var offset = -(targetIdx * ITEM_HEIGHT) + ITEM_HEIGHT;
+                strip.style.transition = 'transform 1.0s cubic-bezier(0.22, 1, 0.36, 1)';
+                strip.style.transform = 'translateY(' + offset + 'px)';
+                setActiveItem(strip, targetIdx);
+            }, delay);
+        }
+
+        spinTo(yearStrip, yearData.targetIdx, 0);
+        spinTo(monthStrip, monthData.targetIdx, 100);
+        spinTo(dayStrip, dayData.targetIdx, 200);
+        spinTo(dowStrip, dowData.targetIdx, 300);
+
+        /* 애니메이션 완료 후 대시보드로 이동 (대시보드 page-entry-overlay가 자연스럽게 페이드인 처리) */
+        setTimeout(function () {
+            window.location.href = '/dashboard';
+        }, 1800);
+
+    }, 500);
+}
+
+/* ══════════════════════════════════
    Join Form — Validation
 ══════════════════════════════════ */
 (function () {
@@ -387,9 +580,14 @@ if (window.location.search.indexOf('error') !== -1) {
             email: emailInput.value.trim()
         };
 
+        var csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        var csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        var headers = { 'Content-Type': 'application/json' };
+        headers[csrfHeader] = csrfToken;
+
         fetch('/api/member/join', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify(body)
         })
         .then(function (r) { return r.json(); })

@@ -4,7 +4,7 @@ import com.trade.folio.domain.member.entity.Member;
 import com.trade.folio.domain.member.dto.JoinRequest;
 import com.trade.folio.domain.member.mapper.MemberMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class MemberService {
 
     private final MemberMapper memberMapper;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     public boolean isLoginIdAvailable(String loginId) {
         return memberMapper.countByLoginId(loginId) == 0;

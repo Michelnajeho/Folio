@@ -11,5 +11,7 @@ public interface MemberMapper {
 
     int countByEmail(@Param("email") String email);
 
+    Member findByLoginId(@Param("loginId") String loginId);
+
     void insert(Member member);
 }

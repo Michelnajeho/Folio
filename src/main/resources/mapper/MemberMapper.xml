@@ -16,6 +16,12 @@
          WHERE email = #{email}
     </select>
 
+    <select id="findByLoginId" resultType="com.trade.folio.domain.member.entity.Member">
+        SELECT id, login_id, password, nickname, email, role, status, updated_at, created_at
+          FROM folio.member
+         WHERE login_id = #{loginId}
+    </select>
+
     <insert id="insert" parameterType="com.trade.folio.domain.member.entity.Member">
         INSERT INTO folio.member (login_id, password, nickname, email)
         VALUES (#{loginId}, #{password}, #{nickname}, #{email})

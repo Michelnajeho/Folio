@@ -377,6 +377,165 @@ body {
     box-shadow: none;
 }
 
+/* ══════════════════════════════════
+   SCENE 4 — Date Intro
+══════════════════════════════════ */
+.date-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.date-intro.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.date-intro-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+}
+
+.date-intro-quote-wrap {
+    text-align: center;
+    max-width: 520px;
+    padding: 0 1.5rem;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.8s ease 0.6s, transform 0.8s ease 0.6s;
+}
+
+.date-intro.active .date-intro-quote-wrap {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.date-intro-quote {
+    font-size: 0.88rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.04em;
+    line-height: 1.7;
+    word-break: keep-all;
+}
+
+.date-intro-author {
+    margin-top: 0.6rem;
+    font-size: 0.76rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 0.06em;
+}
+
+.date-wheel-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.date-wheel-container {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.date-wheel-column {
+    position: relative;
+    width: 100px;
+    height: 180px;
+    overflow: hidden;
+}
+
+.date-wheel-column.date-wheel-dow {
+    width: 80px;
+    margin-left: 24px;
+}
+
+.date-wheel-separator {
+    font-size: 2.4rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.5);
+    width: 20px;
+    text-align: center;
+    line-height: 180px;
+}
+
+.date-wheel-strip {
+    position: absolute;
+    width: 100%;
+    transition: transform 1.0s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.date-wheel-strip .wheel-item {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.15);
+    transition: color 0.4s ease, font-weight 0.4s ease;
+    user-select: none;
+}
+
+.date-wheel-strip .wheel-item.active {
+    color: #fff;
+    font-weight: 600;
+}
+
+.date-wheel-dow .wheel-item {
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Highlight bar */
+.date-wheel-highlight {
+    position: absolute;
+    left: -12px;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 62px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Top/Bottom gradient masks */
+.date-wheel-mask-top,
+.date-wheel-mask-bottom {
+    position: absolute;
+    left: -12px;
+    right: -12px;
+    height: 60px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.date-wheel-mask-top {
+    top: 0;
+    background: linear-gradient(to bottom, #000 0%, transparent 100%);
+}
+
+.date-wheel-mask-bottom {
+    bottom: 0;
+    background: linear-gradient(to top, #000 0%, transparent 100%);
+}
+
 /* ── Responsive ── */
 
 /* Tablet */

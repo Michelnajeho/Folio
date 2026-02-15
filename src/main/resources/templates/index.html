@@ -7,6 +7,8 @@
     <link rel="stylesheet" as="style" crossorigin
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
     <link rel="stylesheet" th:href="@{/css/index.css}"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 
@@ -36,13 +38,11 @@
         <p class="login-desc">Sign in to your account to continue</p>
 
         <div class="login-card">
-            <div class="error-msg"
-                 th:if="${param.error}"
-                 th:style="'display: block'">
-                아이디 또는 비밀번호를 확인해주세요.
+            <div class="error-msg" id="loginError">
+                Invalid ID or password. Please try again.
             </div>
 
-            <form method="get" th:action="@{/dashboard}" autocomplete="off">
+            <form id="loginForm" autocomplete="off" onsubmit="return submitLoginForm(event)">
                 <div class="form-group">
                     <label for="username">ID</label>
                     <input type="text" id="username" name="username"
@@ -53,7 +53,7 @@
                     <input type="password" id="password" name="password"
                            placeholder="Enter your password" required/>
                 </div>
-                <button type="submit" class="btn-submit">Sign In</button>
+                <button type="submit" class="btn-submit" id="btnLoginSubmit">Sign In</button>
             </form>
 
             <div class="login-footer">
@@ -107,6 +107,37 @@
             <div class="login-footer">
                 Already have an account? <a href="javascript:void(0)" onclick="goLoginFromJoin()">Sign in</a>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCENE 4: Date Intro -->
+<div class="date-intro" id="dateIntro">
+    <div class="date-intro-content">
+        <div class="date-wheel-wrapper">
+            <div class="date-wheel-highlight"></div>
+            <div class="date-wheel-container">
+                <div class="date-wheel-column" id="wheelYear">
+                    <div class="date-wheel-strip"></div>
+                </div>
+                <div class="date-wheel-separator">.</div>
+                <div class="date-wheel-column" id="wheelMonth">
+                    <div class="date-wheel-strip"></div>
+                </div>
+                <div class="date-wheel-separator">.</div>
+                <div class="date-wheel-column" id="wheelDay">
+                    <div class="date-wheel-strip"></div>
+                </div>
+                <div class="date-wheel-column date-wheel-dow" id="wheelDow">
+                    <div class="date-wheel-strip"></div>
+                </div>
+            </div>
+            <div class="date-wheel-mask-top"></div>
+            <div class="date-wheel-mask-bottom"></div>
+        </div>
+        <div class="date-intro-quote-wrap" id="dateQuoteWrap">
+            <p class="date-intro-quote" id="dateQuote"></p>
+            <p class="date-intro-author" id="dateAuthor"></p>
         </div>
     </div>
 </div>
