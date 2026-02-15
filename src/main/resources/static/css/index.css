@@ -171,6 +171,13 @@ body {
     pointer-events: auto;
 }
 
+.login-scene.join-active {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 3rem 0;
+    align-items: flex-start;
+}
+
 .login-container {
     width: 400px;
     text-align: center;
@@ -334,6 +341,40 @@ body {
     border: 1px solid rgba(255, 80, 80, 0.15);
     border-radius: 8px;
     text-align: center;
+}
+
+/* ── Field Validation Messages ── */
+.field-msg {
+    display: none;
+    font-size: 0.72rem;
+    margin-top: 0.35rem;
+    padding-left: 0.1rem;
+}
+
+.field-msg.error {
+    display: block;
+    color: #ff8a8a;
+}
+
+.field-msg.success {
+    display: block;
+    color: #4ade80;
+}
+
+.form-group input.input-error {
+    border-color: rgba(255, 100, 100, 0.5);
+}
+
+.form-group input.input-success {
+    border-color: rgba(74, 222, 128, 0.4);
+}
+
+/* ── Disabled Submit ── */
+.btn-submit:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 /* ── Responsive ── */
