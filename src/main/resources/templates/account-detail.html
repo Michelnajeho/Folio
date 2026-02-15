@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title th:text="${account.accountName + ' - Accounts'}">Account Detail</title>
+    <link rel="stylesheet" th:href="@{/css/account-detail.css}"/>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Header -->
+    <div class="acd-header">
+        <div class="acd-header-top">
+            <a th:href="@{/accounts}" class="acd-back">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Accounts
+            </a>
+        </div>
+        <div class="acd-header-main">
+            <h1 th:text="${account.accountName}">Account Name</h1>
+            <div class="acd-header-badges">
+                <span class="acd-badge broker" th:if="${account.broker != null and !account.broker.isEmpty()}" th:text="${account.broker}">Broker</span>
+                <span class="acd-badge currency" th:text="${account.currency}">USD</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="acd-stats">
+        <div class="acd-stat-card highlight">
+            <span class="acd-stat-label">Balance</span>
+            <span class="acd-stat-value large" th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}">0.00</span>
+        </div>
+        <div class="acd-stat-card">
+            <span class="acd-stat-label">Today Deposits</span>
+            <span class="acd-stat-value"
+                  th:classappend="${todaySummary['deposits'] > 0 ? 'positive' : ''}"
+                  th:text="${todaySummary['deposits'] > 0 ? '+' + #numbers.formatDecimal(todaySummary['deposits'], 1, 'COMMA', 2, 'POINT') : #numbers.formatDecimal(todaySummary['deposits'], 1, 'COMMA', 2, 'POINT')}">0.00</span>
+        </div>
+        <div class="acd-stat-card">
+            <span class="acd-stat-label">Today Withdrawals</span>
+            <span class="acd-stat-value"
+                  th:classappend="${todaySummary['withdrawals'] > 0 ? 'negative' : ''}"
+                  th:text="${todaySummary['withdrawals'] > 0 ? '-' + #numbers.formatDecimal(todaySummary['withdrawals'], 1, 'COMMA', 2, 'POINT') : #numbers.formatDecimal(todaySummary['withdrawals'], 1, 'COMMA', 2, 'POINT')}">0.00</span>
+        </div>
+        <div class="acd-stat-card">
+            <span class="acd-stat-label">Total Deposits</span>
+            <span class="acd-stat-value"
+                  th:classappend="${totalSummary['deposits'] > 0 ? 'positive' : ''}"
+                  th:text="${totalSummary['deposits'] > 0 ? '+' + #numbers.formatDecimal(totalSummary['deposits'], 1, 'COMMA', 2, 'POINT') : #numbers.formatDecimal(totalSummary['deposits'], 1, 'COMMA', 2, 'POINT')}">0.00</span>
+        </div>
+        <div class="acd-stat-card">
+            <span class="acd-stat-label">Total Withdrawals</span>
+            <span class="acd-stat-value"
+                  th:classappend="${totalSummary['withdrawals'] > 0 ? 'negative' : ''}"
+                  th:text="${totalSummary['withdrawals'] > 0 ? '-' + #numbers.formatDecimal(totalSummary['withdrawals'], 1, 'COMMA', 2, 'POINT') : #numbers.formatDecimal(totalSummary['withdrawals'], 1, 'COMMA', 2, 'POINT')}">0.00</span>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="acd-actions">
+        <div class="acd-actions-left">
+            <button class="acd-btn primary" type="button" onclick="openTxModal()">Deposit / Withdraw</button>
+            <button class="acd-btn" type="button" onclick="openEditModal()">Edit</button>
+        </div>
+        <div class="acd-actions-right">
+            <button class="acd-btn danger" type="button" onclick="deleteAccount()">Delete</button>
+        </div>
+    </div>
+
+    <!-- Transaction History Table -->
+    <div class="acd-section">
+        <h2 class="acd-section-title">Transaction History</h2>
+
+        <div class="acd-table-wrap" th:if="${#lists.size(transactions) > 0}">
+            <table class="acd-table">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Memo</th>
+                    <th class="acd-th-action"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="tx : ${transactions}">
+                    <td th:text="${#temporals.format(tx.transactedAt, 'yyyy-MM-dd HH:mm')}">2026-02-15 14:30</td>
+                    <td>
+                        <span class="acd-type-badge"
+                              th:classappend="${tx.type == 'DEPOSIT' ? 'deposit' : 'withdrawal'}"
+                              th:text="${tx.type == 'DEPOSIT' ? 'Deposit' : 'Withdrawal'}">Deposit</span>
+                    </td>
+                    <td th:classappend="${tx.type == 'DEPOSIT' ? 'positive' : 'negative'}"
+                        th:text="${(tx.type == 'DEPOSIT' ? '+' : '-') + #numbers.formatDecimal(tx.amount, 1, 'COMMA', 2, 'POINT')}">+1,000.00</td>
+                    <td class="acd-memo" th:text="${tx.memo != null ? tx.memo : '-'}">-</td>
+                    <td class="acd-td-action">
+                        <button class="acd-edit-btn" type="button"
+                                th:attr="onclick='openTxEditModal(' + ${tx.id} + ', \'' + ${tx.type} + '\', ' + ${tx.amount} + ', \'' + (${tx.memo} != null ? ${tx.memo} : '') + '\')'">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        <div class="acd-empty" th:if="${#lists.size(transactions) == 0}">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+            </svg>
+            <p>아직 입출금 내역이 없습니다.</p>
+            <span>Deposit / Withdraw 버튼으로 첫 거래를 기록하세요.</span>
+        </div>
+    </div>
+
+    <!-- Edit Account Modal -->
+    <div class="acc-modal-overlay" id="editAccountModal">
+        <div class="acc-modal">
+            <div class="acc-modal-header">
+                <h2>Edit Account</h2>
+                <button class="acc-modal-close" type="button" onclick="closeEditModal()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form class="acc-modal-form" id="editAccountForm" onsubmit="return submitEditAccount(event)">
+                <input type="hidden" id="editAccountId" th:value="${account.id}" />
+                <div class="acc-form-group">
+                    <label for="editAccountName">Account Name <span class="required">*</span></label>
+                    <input type="text" id="editAccountName" name="accountName" th:value="${account.accountName}" required />
+                    <span class="acc-form-error" id="editAccountNameError"></span>
+                </div>
+                <div class="acc-form-group">
+                    <label for="editBroker">Broker</label>
+                    <input type="text" id="editBroker" name="broker" th:value="${account.broker}" />
+                </div>
+                <div class="acc-form-group">
+                    <label for="editCurrency">Currency <span class="required">*</span></label>
+                    <select id="editCurrency" name="currency" required>
+                        <option value="USD" th:selected="${account.currency == 'USD'}">USD</option>
+                        <option value="KRW" th:selected="${account.currency == 'KRW'}">KRW</option>
+                        <option value="USDT" th:selected="${account.currency == 'USDT'}">USDT</option>
+                        <option value="EUR" th:selected="${account.currency == 'EUR'}">EUR</option>
+                        <option value="JPY" th:selected="${account.currency == 'JPY'}">JPY</option>
+                        <option value="BTC" th:selected="${account.currency == 'BTC'}">BTC</option>
+                    </select>
+                </div>
+                <div class="acc-modal-footer">
+                    <button class="acc-modal-btn cancel" type="button" onclick="closeEditModal()">Cancel</button>
+                    <button class="acc-modal-btn submit" type="submit" id="editSubmitBtn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Deposit / Withdraw Modal -->
+    <div class="acc-modal-overlay" id="txModal">
+        <div class="acc-modal">
+            <div class="acc-modal-header">
+                <h2>Deposit / Withdraw</h2>
+                <button class="acc-modal-close" type="button" onclick="closeTxModal()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form class="acc-modal-form" id="txForm" onsubmit="return submitTransaction(event)">
+                <input type="hidden" id="txAccountId" th:value="${account.id}" />
+                <div class="acc-form-group acc-tx-account-info">
+                    <label>Account</label>
+                    <span class="acc-tx-account-name" th:text="${account.accountName}">-</span>
+                </div>
+                <div class="acc-form-group">
+                    <label for="txType">Type <span class="required">*</span></label>
+                    <select id="txType" name="type" required>
+                        <option value="DEPOSIT">Deposit (입금)</option>
+                        <option value="WITHDRAWAL">Withdrawal (출금)</option>
+                    </select>
+                </div>
+                <div class="acc-form-group">
+                    <label for="txAmount">Amount <span class="required">*</span></label>
+                    <div class="acc-tx-amount-wrap">
+                        <input type="number" id="txAmount" name="amount" placeholder="0.00" step="0.01" min="0.01" required />
+                        <span class="acc-tx-currency" th:text="${account.currency}">USD</span>
+                    </div>
+                </div>
+                <div class="acc-form-group">
+                    <label for="txMemo">Memo</label>
+                    <input type="text" id="txMemo" name="memo" placeholder="메모 (선택)" maxlength="200" />
+                </div>
+                <div class="acc-modal-footer">
+                    <button class="acc-modal-btn cancel" type="button" onclick="closeTxModal()">Cancel</button>
+                    <button class="acc-modal-btn submit" type="submit" id="txSubmitBtn">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Transaction Modal -->
+    <div class="acc-modal-overlay" id="txEditModal">
+        <div class="acc-modal">
+            <div class="acc-modal-header">
+                <h2>Edit Transaction</h2>
+                <button class="acc-modal-close" type="button" onclick="closeTxEditModal()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form class="acc-modal-form" id="txEditForm" onsubmit="return submitTxEdit(event)">
+                <input type="hidden" id="txEditId" />
+                <div class="acc-form-group">
+                    <label for="txEditType">Type <span class="required">*</span></label>
+                    <select id="txEditType" name="type" required>
+                        <option value="DEPOSIT">Deposit (입금)</option>
+                        <option value="WITHDRAWAL">Withdrawal (출금)</option>
+                    </select>
+                </div>
+                <div class="acc-form-group">
+                    <label for="txEditAmount">Amount <span class="required">*</span></label>
+                    <div class="acc-tx-amount-wrap">
+                        <input type="number" id="txEditAmount" name="amount" placeholder="0.00" step="0.01" min="0.01" required />
+                        <span class="acc-tx-currency" th:text="${account.currency}">USD</span>
+                    </div>
+                </div>
+                <div class="acc-form-group">
+                    <label for="txEditMemo">Memo</label>
+                    <input type="text" id="txEditMemo" name="memo" placeholder="메모 (선택)" maxlength="200" />
+                </div>
+                <div class="acc-modal-footer">
+                    <button class="acc-modal-btn cancel" type="button" onclick="closeTxEditModal()">Cancel</button>
+                    <button class="acc-modal-btn submit" type="submit" id="txEditSubmitBtn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Feedback Modal -->
+    <div class="acc-modal-overlay" id="successModal">
+        <div class="acc-modal acc-success-modal">
+            <div class="acc-success-body">
+                <div class="acc-success-icon">
+                    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/>
+                    </svg>
+                </div>
+                <p class="acc-success-message" id="successMessage">완료되었습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+    var accountId = /*[[${account.id}]]*/ 0;
+
+    var isReloading = false;
+    function showSuccessModal(message, callback) {
+        var modal = document.getElementById('successModal');
+        document.getElementById('successMessage').textContent = message;
+        modal.classList.add('active');
+        setTimeout(function () {
+            modal.classList.remove('active');
+            if (callback && !isReloading) { isReloading = true; callback(); }
+        }, 1200);
+    }
+
+    /* ══ Edit Account Modal ══ */
+    var editOriginalName = /*[[${account.accountName}]]*/ '';
+    var isEditNameAvailable = true;
+    var editNameCheckTimer = null;
+
+    function openEditModal() {
+        isEditNameAvailable = true;
+        document.getElementById('editAccountNameError').textContent = '';
+        document.getElementById('editAccountModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setTimeout(function () { document.getElementById('editAccountName').focus(); }, 200);
+    }
+    function closeEditModal() {
+        document.getElementById('editAccountModal').classList.remove('active');
+        document.body.style.overflow = '';
+        document.getElementById('editAccountNameError').textContent = '';
+    }
+    document.getElementById('editAccountModal').addEventListener('click', function (e) { if (e.target === this) closeEditModal(); });
+
+    document.getElementById('editAccountName').addEventListener('input', function () {
+        var name = this.value.trim();
+        var errorEl = document.getElementById('editAccountNameError');
+        if (editNameCheckTimer) clearTimeout(editNameCheckTimer);
+        if (!name || name === editOriginalName) { errorEl.textContent = ''; isEditNameAvailable = true; return; }
+        editNameCheckTimer = setTimeout(function () {
+            fetch('/api/account/check-name?accountName=' + encodeURIComponent(name))
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (d.data && !d.data.available) { errorEl.textContent = '이미 동일한 이름의 계좌가 존재합니다.'; isEditNameAvailable = false; }
+                    else { errorEl.textContent = ''; isEditNameAvailable = true; }
+                });
+        }, 300);
+    });
+
+    var isEditSubmitting = false;
+    function submitEditAccount(e) {
+        e.preventDefault();
+        if (isEditSubmitting) return false;
+        if (!isEditNameAvailable) { document.getElementById('editAccountNameError').textContent = '이미 동일한 이름의 계좌가 존재합니다.'; document.getElementById('editAccountName').focus(); return false; }
+        isEditSubmitting = true;
+        var btn = document.getElementById('editSubmitBtn'); btn.disabled = true; btn.textContent = 'Saving...';
+        var body = { accountName: document.getElementById('editAccountName').value.trim(), broker: document.getElementById('editBroker').value.trim() || null, currency: document.getElementById('editCurrency').value };
+        var csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        var csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        var headers = { 'Content-Type': 'application/json' }; headers[csrfHeader] = csrfToken;
+        fetch('/api/account/' + accountId, { method: 'PUT', headers: headers, body: JSON.stringify(body) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (d.success) { closeEditModal(); showSuccessModal('계좌 정보가 수정되었습니다.', function () { window.location.reload(); }); }
+            else { alert(d.message || '계좌 수정에 실패했습니다.'); isEditSubmitting = false; btn.disabled = false; btn.textContent = 'Save Changes'; }
+        }).catch(function () { alert('서버 오류가 발생했습니다.'); isEditSubmitting = false; btn.disabled = false; btn.textContent = 'Save Changes'; });
+        return false;
+    }
+
+    /* ══ Delete Account ══ */
+    function deleteAccount() {
+        showConfirm({ title: '정말 삭제하시겠습니까?', description: '관련된 모든 거래 기록도 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다.', icon: 'danger', confirmText: 'Delete', confirmClass: 'danger',
+            onConfirm: function () {
+                var csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                var csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+                var headers = {}; headers[csrfHeader] = csrfToken;
+                fetch('/api/account/' + accountId, { method: 'DELETE', headers: headers })
+                .then(function (r) { return r.json(); })
+                .then(function (d) { if (d.success) { showSuccessModal('계좌가 삭제되었습니다.', function () { window.location.href = '/accounts'; }); } else { alert(d.message || '계좌 삭제에 실패했습니다.'); } })
+                .catch(function () { alert('서버 오류가 발생했습니다.'); });
+            }
+        });
+    }
+
+    /* ══ Deposit / Withdraw Modal ══ */
+    function openTxModal() {
+        document.getElementById('txType').value = 'DEPOSIT';
+        document.getElementById('txAmount').value = '';
+        document.getElementById('txMemo').value = '';
+        document.getElementById('txSubmitBtn').disabled = false;
+        document.getElementById('txSubmitBtn').textContent = 'Confirm';
+        document.getElementById('txModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setTimeout(function () { document.getElementById('txAmount').focus(); }, 200);
+    }
+    function closeTxModal() { document.getElementById('txModal').classList.remove('active'); document.body.style.overflow = ''; document.getElementById('txForm').reset(); }
+    document.getElementById('txModal').addEventListener('click', function (e) { if (e.target === this) closeTxModal(); });
+
+    var isTxSubmitting = false;
+    function submitTransaction(e) {
+        e.preventDefault();
+        if (isTxSubmitting) return false;
+        isTxSubmitting = true;
+        var btn = document.getElementById('txSubmitBtn'); btn.disabled = true; btn.textContent = 'Processing...';
+        var type = document.getElementById('txType').value;
+        var body = { type: type, amount: parseFloat(document.getElementById('txAmount').value), memo: document.getElementById('txMemo').value.trim() || null };
+        var csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        var csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        var headers = { 'Content-Type': 'application/json' }; headers[csrfHeader] = csrfToken;
+        fetch('/api/account/' + accountId + '/transaction', { method: 'POST', headers: headers, body: JSON.stringify(body) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (d.success) { var msg = type === 'DEPOSIT' ? '입금이 완료되었습니다.' : '출금이 완료되었습니다.'; closeTxModal(); showSuccessModal(msg, function () { window.location.reload(); }); }
+            else { alert(d.message || '처리에 실패했습니다.'); isTxSubmitting = false; btn.disabled = false; btn.textContent = 'Confirm'; }
+        }).catch(function () { alert('서버 오류가 발생했습니다.'); isTxSubmitting = false; btn.disabled = false; btn.textContent = 'Confirm'; });
+        return false;
+    }
+
+    /* ══ Edit Transaction Modal ══ */
+    function openTxEditModal(txId, type, amount, memo) {
+        document.getElementById('txEditId').value = txId;
+        document.getElementById('txEditType').value = type;
+        document.getElementById('txEditAmount').value = amount;
+        document.getElementById('txEditMemo').value = memo;
+        document.getElementById('txEditSubmitBtn').disabled = false;
+        document.getElementById('txEditSubmitBtn').textContent = 'Save Changes';
+        document.getElementById('txEditModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setTimeout(function () { document.getElementById('txEditAmount').focus(); }, 200);
+    }
+    function closeTxEditModal() { document.getElementById('txEditModal').classList.remove('active'); document.body.style.overflow = ''; document.getElementById('txEditForm').reset(); }
+    document.getElementById('txEditModal').addEventListener('click', function (e) { if (e.target === this) closeTxEditModal(); });
+
+    var isTxEditSubmitting = false;
+    function submitTxEdit(e) {
+        e.preventDefault();
+        if (isTxEditSubmitting) return false;
+        isTxEditSubmitting = true;
+        var btn = document.getElementById('txEditSubmitBtn'); btn.disabled = true; btn.textContent = 'Saving...';
+        var txId = document.getElementById('txEditId').value;
+        var body = { type: document.getElementById('txEditType').value, amount: parseFloat(document.getElementById('txEditAmount').value), memo: document.getElementById('txEditMemo').value.trim() || null };
+        var csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        var csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        var headers = { 'Content-Type': 'application/json' }; headers[csrfHeader] = csrfToken;
+        fetch('/api/account/' + accountId + '/transaction/' + txId, { method: 'PUT', headers: headers, body: JSON.stringify(body) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (d.success) { closeTxEditModal(); showSuccessModal('거래 내역이 수정되었습니다.', function () { window.location.reload(); }); }
+            else { alert(d.message || '수정에 실패했습니다.'); isTxEditSubmitting = false; btn.disabled = false; btn.textContent = 'Save Changes'; }
+        }).catch(function () { alert('서버 오류가 발생했습니다.'); isTxEditSubmitting = false; btn.disabled = false; btn.textContent = 'Save Changes'; });
+        return false;
+    }
+
+    /* ── ESC ── */
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            var txEdit = document.getElementById('txEditModal');
+            var tx = document.getElementById('txModal');
+            var edit = document.getElementById('editAccountModal');
+            if (txEdit.classList.contains('active')) closeTxEditModal();
+            else if (tx.classList.contains('active')) closeTxModal();
+            else if (edit.classList.contains('active')) closeEditModal();
+        }
+    });
+    </script>
+
+</div>
+</body>
+</html>

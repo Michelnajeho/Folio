@@ -1,0 +1,620 @@
+/* ══════════════════════════════════
+   Account Detail Page Styles
+══════════════════════════════════ */
+
+/* ── Header ── */
+.acd-header {
+    margin-bottom: 1.5rem;
+}
+
+.acd-header-top {
+    margin-bottom: 1rem;
+}
+
+.acd-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.acd-back:hover {
+    color: var(--text-primary);
+}
+
+.acd-back svg {
+    flex-shrink: 0;
+}
+
+.acd-header-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.acd-header-main h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.acd-header-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.acd-badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border-radius: 4px;
+}
+
+.acd-badge.currency {
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.1);
+}
+
+.acd-badge.broker {
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .acd-badge.broker {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+/* ── Stats Cards ── */
+.acd-stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.acd-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1rem 1.2rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    transition: background 0.3s, border-color 0.3s;
+}
+
+.acd-stat-card.highlight {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: var(--bg-secondary);
+}
+
+[data-theme="light"] .acd-stat-card.highlight {
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+.acd-stat-label {
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--text-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.acd-stat-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.acd-stat-value.large {
+    font-size: 1.3rem;
+    letter-spacing: -0.01em;
+}
+
+.acd-stat-value.positive {
+    color: #4ade80;
+}
+
+.acd-stat-value.negative {
+    color: #f87171;
+}
+
+.acd-stat-value.date {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* ── Action Bar ── */
+.acd-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.acd-actions-left,
+.acd-actions-right {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.acd-btn {
+    padding: 0.55rem 1.1rem;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.acd-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-hover);
+}
+
+.acd-btn.primary {
+    color: #000;
+    background: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.acd-btn.primary:hover {
+    opacity: 0.85;
+}
+
+[data-theme="light"] .acd-btn.primary {
+    color: #fff;
+    background: #000;
+    border-color: #000;
+}
+
+.acd-btn.danger {
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.3);
+}
+
+.acd-btn.danger:hover {
+    color: #ef4444;
+    background: rgba(248, 113, 113, 0.06);
+    border-color: rgba(248, 113, 113, 0.5);
+}
+
+/* ── Section ── */
+.acd-section {
+    margin-bottom: 2rem;
+}
+
+.acd-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.8rem;
+}
+
+/* ── Table ── */
+.acd-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    transition: background 0.3s, border-color 0.3s;
+}
+
+.acd-table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+}
+
+.acd-table thead th {
+    padding: 0.8rem 1rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    background: var(--bg-secondary);
+}
+
+.acd-table tbody td {
+    padding: 0.75rem 1rem;
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    transition: color 0.3s;
+}
+
+.acd-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.acd-table tbody tr:hover td {
+    background: var(--bg-hover);
+}
+
+/* P&L / Amount colors */
+.acd-table td.positive {
+    color: #4ade80;
+    font-weight: 600;
+}
+
+.acd-table td.negative {
+    color: #f87171;
+    font-weight: 600;
+}
+
+/* ── Type Badge ── */
+.acd-type-badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border-radius: 4px;
+}
+
+.acd-type-badge.deposit {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.1);
+}
+
+.acd-type-badge.withdrawal {
+    color: #f87171;
+    background: rgba(248, 113, 113, 0.1);
+}
+
+/* ── Memo ── */
+.acd-memo {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Action Column & Edit Button ── */
+.acd-th-action,
+.acd-td-action {
+    width: 44px;
+    min-width: 44px;
+    text-align: center;
+}
+
+.acd-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--text-faint);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.acd-edit-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    background: var(--bg-hover);
+}
+
+/* ── Empty State ── */
+.acd-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 3rem 2rem;
+    text-align: center;
+    background: var(--bg-secondary);
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+    transition: background 0.3s;
+}
+
+.acd-empty svg {
+    color: var(--text-faint);
+    margin-bottom: 0.3rem;
+}
+
+.acd-empty p {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.acd-empty span {
+    font-size: 0.8rem;
+    color: var(--text-faint);
+}
+
+/* ══════════════════════════════════
+   Modal styles (reused from accounts)
+══════════════════════════════════ */
+.acc-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.acc-modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.acc-modal {
+    width: 100%;
+    max-width: 440px;
+    margin: 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    overflow: hidden;
+    transform: translateY(10px);
+    animation: modalSlideUp 0.2s ease forwards;
+}
+
+@keyframes modalSlideUp {
+    to { transform: translateY(0); }
+}
+
+.acc-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 1.5rem 0;
+}
+
+.acc-modal-header h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.acc-modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+.acc-modal-close:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.acc-modal-form {
+    padding: 1.2rem 1.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.acc-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.acc-form-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.acc-form-group .required {
+    color: #f87171;
+}
+
+.acc-form-group input,
+.acc-form-group select {
+    padding: 0.6rem 0.8rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s, background 0.3s;
+}
+
+.acc-form-group input:focus,
+.acc-form-group select:focus {
+    border-color: var(--border-hover);
+}
+
+.acc-form-group select {
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 2rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+}
+
+.acc-form-error {
+    font-size: 0.75rem;
+    color: #f87171;
+    min-height: 1em;
+}
+
+.acc-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+}
+
+.acc-modal-btn {
+    padding: 0.55rem 1rem;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.15s, background 0.15s;
+}
+
+.acc-modal-btn.cancel {
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--border-color);
+}
+
+.acc-modal-btn.cancel:hover {
+    color: var(--text-primary);
+    border-color: var(--border-hover);
+}
+
+.acc-modal-btn.submit {
+    color: #000;
+    background: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.acc-modal-btn.submit:hover {
+    opacity: 0.85;
+}
+
+[data-theme="light"] .acc-modal-btn.submit {
+    color: #fff;
+    background: #000;
+    border-color: #000;
+}
+
+/* TX account info */
+.acc-tx-account-info {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.acc-tx-account-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.acc-tx-amount-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.acc-tx-amount-wrap input {
+    flex: 1;
+    padding-right: 3.5rem;
+}
+
+.acc-tx-currency {
+    position: absolute;
+    right: 0.8rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-faint);
+    pointer-events: none;
+}
+
+/* Success modal */
+.acc-success-modal {
+    max-width: 300px;
+    text-align: center;
+}
+
+.acc-success-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 2rem 1.5rem;
+}
+
+.acc-success-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.acc-success-message {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .acd-stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .acd-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .acd-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .acd-actions-left,
+    .acd-actions-right {
+        width: 100%;
+    }
+
+    .acd-actions-left .acd-btn,
+    .acd-actions-right .acd-btn {
+        flex: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    .acd-header-main h1 {
+        font-size: 1.3rem;
+    }
+
+    .acd-stats {
+        grid-template-columns: 1fr;
+    }
+}

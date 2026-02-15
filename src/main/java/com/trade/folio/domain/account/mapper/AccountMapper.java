@@ -4,6 +4,7 @@ import com.trade.folio.domain.account.entity.Account;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Mapper
@@ -22,4 +23,6 @@ public interface AccountMapper {
     void update(Account account);
 
     void deleteById(@Param("id") Long id);
+
+    void updateBalance(@Param("id") Long id, @Param("amount") BigDecimal amount);
 }

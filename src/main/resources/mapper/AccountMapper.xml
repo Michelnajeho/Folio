@@ -51,4 +51,11 @@
          WHERE id = #{id}
     </delete>
 
+    <update id="updateBalance">
+        UPDATE folio.account
+           SET balance    = balance + #{amount},
+               updated_at = NOW()
+         WHERE id = #{id}
+    </update>
+
 </mapper>

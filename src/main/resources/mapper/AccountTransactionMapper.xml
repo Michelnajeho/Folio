@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trade.folio.domain.account.mapper.AccountTransactionMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO folio.account_transaction (account_id, type, amount, memo, transacted_at)
+        VALUES (#{accountId}, #{type}, #{amount}, #{memo}, NOW())
+    </insert>
+
+    <select id="findByAccountId" resultType="com.trade.folio.domain.account.entity.AccountTransaction">
+        SELECT id, account_id, type, amount, memo, transacted_at, created_at
+          FROM folio.account_transaction
+         WHERE account_id = #{accountId}
+         ORDER BY transacted_at DESC
+    </select>
+
+    <select id="sumTodayByAccountIdAndType" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0)
+          FROM folio.account_transaction
+         WHERE account_id = #{accountId}
+           AND type = #{type}
+           AND transacted_at >= CURRENT_DATE
+           AND transacted_at &lt; CURRENT_DATE + INTERVAL '1 day'
+    </select>
+
+    <select id="sumAllByAccountIdAndType" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0)
+          FROM folio.account_transaction
+         WHERE account_id = #{accountId}
+           AND type = #{type}
+    </select>
+
+    <select id="findById" resultType="com.trade.folio.domain.account.entity.AccountTransaction">
+        SELECT id, account_id, type, amount, memo, transacted_at, created_at
+          FROM folio.account_transaction
+         WHERE id = #{id}
+    </select>
+
+    <update id="update">
+        UPDATE folio.account_transaction
+           SET type = #{type},
+               amount = #{amount},
+               memo = #{memo}
+         WHERE id = #{id}
+    </update>
+
+</mapper>

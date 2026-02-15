@@ -225,6 +225,9 @@
 
 .acc-card-btn {
     flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 0.5rem 0.8rem;
     font-family: inherit;
     font-size: 0.76rem;
@@ -234,6 +237,7 @@
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 6px;
     cursor: pointer;
+    text-decoration: none;
     transition: opacity 0.2s;
 }
 
@@ -579,6 +583,41 @@
     font-weight: 600;
     color: var(--text-primary);
     margin: 0;
+}
+
+/* ══════════════════════════════════
+   Deposit / Withdraw Modal
+══════════════════════════════════ */
+.acc-tx-account-info {
+    padding-bottom: 0.6rem;
+    margin-bottom: 1.1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.acc-tx-account-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.acc-tx-amount-wrap {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.acc-tx-amount-wrap input {
+    width: 100%;
+    padding-right: 3.5rem;
+}
+
+.acc-tx-currency {
+    position: absolute;
+    right: 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-faint);
+    pointer-events: none;
 }
 
 /* ── Responsive ── */
