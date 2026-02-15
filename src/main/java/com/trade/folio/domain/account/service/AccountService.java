@@ -5,6 +5,7 @@ import com.trade.folio.domain.account.dto.AccountSummary;
 import com.trade.folio.domain.account.dto.AccountUpdateRequest;
 import com.trade.folio.domain.account.entity.Account;
 import com.trade.folio.domain.account.mapper.AccountMapper;
+import com.trade.folio.domain.trade.mapper.TradeMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ public class AccountService {
     private static final int MAX_ACCOUNT_COUNT = 3;
 
     private final AccountMapper accountMapper;
+    private final TradeMapper tradeMapper;
 
     public List<Account> getAccountsByMemberId(Long memberId) {
         return accountMapper.findByMemberId(memberId);
@@ -97,8 +99,8 @@ public class AccountService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         summary.setTotalBalance(totalBalance);
 
-        // TODO: trading_history 테이블 연동 후 실제 P&L 계산
-        summary.setMonthlyPnl(BigDecimal.ZERO);
+        /* 이번 달 P&L: 회원의 전체 계좌 trade P&L 합계 */
+        summary.setMonthlyPnl(tradeMapper.sumMonthlyPnlByMemberId(memberId));
 
         return summary;
     }

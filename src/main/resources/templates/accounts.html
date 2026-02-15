@@ -11,31 +11,32 @@
     <div class="acc-header">
         <div class="acc-header-top">
             <div>
-                <h1>Accounts</h1>
-                <p>계좌를 등록하고 자산을 관리하세요.</p>
+                <h1 th:text="#{accounts.title}">Accounts</h1>
+                <p th:text="#{accounts.subtitle}">계좌를 등록하고 자산을 관리하세요.</p>
             </div>
             <button class="acc-btn-add" type="button" onclick="openAddModal()"
-                    th:if="${#lists.size(accounts) > 0 and #lists.size(accounts) < 3}">+ New Account</button>
+                    th:if="${#lists.size(accounts) > 0 and #lists.size(accounts) < 3}"
+                    th:text="#{accounts.new_account}">+ New Account</button>
         </div>
     </div>
 
-    <!-- Summary Cards (계좌가 있을 때만) -->
+    <!-- Summary Cards -->
     <div class="acc-summary" th:if="${#lists.size(accounts) > 0}">
         <div class="acc-summary-card">
-            <span class="acc-summary-label">Total Balance</span>
+            <span class="acc-summary-label" th:text="#{accounts.total_balance}">Total Balance</span>
             <span class="acc-summary-value" th:text="${#numbers.formatDecimal(summary.totalBalance, 1, 'COMMA', 2, 'POINT')}">0</span>
         </div>
         <div class="acc-summary-card">
-            <span class="acc-summary-label">Accounts</span>
+            <span class="acc-summary-label" th:text="#{accounts.accounts}">Accounts</span>
             <span class="acc-summary-value" th:text="${summary.accountCount + ' / 3'}">0</span>
-            <span class="acc-summary-sub">active accounts</span>
+            <span class="acc-summary-sub" th:text="#{accounts.active_accounts}">active accounts</span>
         </div>
         <div class="acc-summary-card">
-            <span class="acc-summary-label">This Month P&amp;L</span>
+            <span class="acc-summary-label" th:text="#{accounts.this_month_pnl}">This Month P&amp;L</span>
             <span class="acc-summary-value"
                   th:classappend="${summary.monthlyPnl >= 0 ? 'positive' : 'negative'}"
                   th:text="${(summary.monthlyPnl >= 0 ? '+' : '') + #numbers.formatDecimal(summary.monthlyPnl, 1, 'COMMA', 2, 'POINT')}">0</span>
-            <span class="acc-summary-sub">this month</span>
+            <span class="acc-summary-sub" th:text="#{accounts.this_month}">this month</span>
         </div>
     </div>
 
@@ -52,33 +53,37 @@
             </div>
             <div class="acc-card-body"
                  th:with="todayDeposits=${todayMap[acc.id]['deposits']}, todayWithdrawals=${todayMap[acc.id]['withdrawals']}">
-                <span class="acc-card-section-label">Today</span>
+                <span class="acc-card-section-label" th:text="#{accounts.today}">Today</span>
                 <div class="acc-card-row">
-                    <span class="acc-card-label">Deposits</span>
+                    <span class="acc-card-label" th:text="#{accounts.deposits}">Deposits</span>
                     <span class="acc-card-amount"
                           th:classappend="${todayDeposits > 0 ? 'positive' : ''}"
                           th:text="${todayDeposits > 0 ? '+' + #numbers.formatDecimal(todayDeposits, 1, 'COMMA', 2, 'POINT') : #numbers.formatDecimal(todayDeposits, 1, 'COMMA', 2, 'POINT')}">0.00</span>
                 </div>
                 <div class="acc-card-row">
-                    <span class="acc-card-label">Withdrawals</span>
+                    <span class="acc-card-label" th:text="#{accounts.withdrawals}">Withdrawals</span>
                     <span class="acc-card-amount"
                           th:classappend="${todayWithdrawals > 0 ? 'negative' : ''}"
                           th:text="${todayWithdrawals > 0 ? '-' + #numbers.formatDecimal(todayWithdrawals, 1, 'COMMA', 2, 'POINT') : #numbers.formatDecimal(todayWithdrawals, 1, 'COMMA', 2, 'POINT')}">0.00</span>
                 </div>
-                <div class="acc-card-row">
-                    <span class="acc-card-label">Trading P&amp;L</span>
-                    <span class="acc-card-amount">0.00</span>
+                <div class="acc-card-row"
+                     th:with="tradingPnl=${tradingPnlMap[acc.id]}">
+                    <span class="acc-card-label" th:text="#{accounts.trading_pnl}">Trading P&amp;L</span>
+                    <span class="acc-card-amount"
+                          th:classappend="${tradingPnl > 0 ? 'positive' : ''} + ' ' + ${tradingPnl < 0 ? 'negative' : ''}"
+                          th:text="${tradingPnl > 0 ? '+' + #numbers.formatDecimal(tradingPnl, 1, 'COMMA', 2, 'POINT') : #numbers.formatDecimal(tradingPnl, 1, 'COMMA', 2, 'POINT')}">0.00</span>
                 </div>
                 <div class="acc-card-divider"></div>
                 <div class="acc-card-row acc-card-total">
-                    <span class="acc-card-label">Balance</span>
+                    <span class="acc-card-label" th:text="#{accounts.balance}">Balance</span>
                     <span class="acc-card-amount" th:text="${#numbers.formatDecimal(acc.balance, 1, 'COMMA', 2, 'POINT')}">0.00</span>
                 </div>
             </div>
             <div class="acc-card-footer">
                 <button class="acc-card-btn" type="button"
-                        th:attr="onclick='openTxModal(' + ${acc.id} + ', \'' + ${acc.accountName} + '\', \'' + ${acc.currency} + '\')'">Deposit / Withdraw</button>
-                <a class="acc-card-btn secondary" th:href="@{/accounts/{id}(id=${acc.id})}">Details</a>
+                        th:attr="onclick='openTxModal(' + ${acc.id} + ', \'' + ${acc.accountName} + '\', \'' + ${acc.currency} + '\')'"
+                        th:text="#{accounts.deposit_withdraw}">Deposit / Withdraw</button>
+                <a class="acc-card-btn secondary" th:href="@{/accounts/{id}(id=${acc.id})}" th:text="#{accounts.details}">Details</a>
             </div>
         </div>
     </div>
@@ -91,32 +96,32 @@
                 <line x1="2" y1="10" x2="22" y2="10"/>
             </svg>
         </div>
-        <p>아직 등록된 계좌가 없습니다.</p>
-        <span class="acc-empty-sub">새 계좌를 등록하고 트레이딩 기록을 시작하세요.</span>
-        <button class="acc-empty-btn" type="button" onclick="openAddModal()">+ New Account</button>
+        <p th:text="#{accounts.empty_title}">아직 등록된 계좌가 없습니다.</p>
+        <span class="acc-empty-sub" th:text="#{accounts.empty_sub}">새 계좌를 등록하고 트레이딩 기록을 시작하세요.</span>
+        <button class="acc-empty-btn" type="button" onclick="openAddModal()" th:text="#{accounts.new_account}">+ New Account</button>
     </div>
 
     <!-- Add Account Modal -->
     <div class="acc-modal-overlay" id="addAccountModal">
         <div class="acc-modal">
             <div class="acc-modal-header">
-                <h2>New Account</h2>
+                <h2 th:text="#{accounts.modal.new_title}">New Account</h2>
                 <button class="acc-modal-close" type="button" onclick="closeAddModal()">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
             <form class="acc-modal-form" id="addAccountForm" onsubmit="return submitAccount(event)">
                 <div class="acc-form-group">
-                    <label for="accountName">Account Name <span class="required">*</span></label>
-                    <input type="text" id="accountName" name="accountName" placeholder="예: Binance Futures" required />
+                    <label for="accountName" th:text="#{accounts.modal.account_name} + ' *'">Account Name *</label>
+                    <input type="text" id="accountName" name="accountName" th:placeholder="#{accounts.modal.name_placeholder}" required />
                     <span class="acc-form-error" id="accountNameError"></span>
                 </div>
                 <div class="acc-form-group">
-                    <label for="broker">Broker</label>
-                    <input type="text" id="broker" name="broker" placeholder="예: Binance" />
+                    <label for="broker" th:text="#{accounts.modal.broker}">Broker</label>
+                    <input type="text" id="broker" name="broker" th:placeholder="#{accounts.modal.broker_placeholder}" />
                 </div>
                 <div class="acc-form-group">
-                    <label for="currency">Currency <span class="required">*</span></label>
+                    <label for="currency" th:text="#{accounts.modal.currency} + ' *'">Currency *</label>
                     <select id="currency" name="currency" required>
                         <option value="USD">USD</option>
                         <option value="KRW">KRW</option>
@@ -127,8 +132,8 @@
                     </select>
                 </div>
                 <div class="acc-modal-footer">
-                    <button class="acc-modal-btn cancel" type="button" onclick="closeAddModal()">Cancel</button>
-                    <button class="acc-modal-btn submit" type="submit" id="submitBtn">Create Account</button>
+                    <button class="acc-modal-btn cancel" type="button" onclick="closeAddModal()" th:text="#{accounts.modal.cancel}">Cancel</button>
+                    <button class="acc-modal-btn submit" type="submit" id="submitBtn" th:text="#{accounts.modal.create}">Create Account</button>
                 </div>
             </form>
         </div>
@@ -138,7 +143,7 @@
     <div class="acc-modal-overlay" id="txModal">
         <div class="acc-modal">
             <div class="acc-modal-header">
-                <h2>Deposit / Withdraw</h2>
+                <h2 th:text="#{accounts.tx.title}">Deposit / Withdraw</h2>
                 <button class="acc-modal-close" type="button" onclick="closeTxModal()">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
@@ -146,36 +151,51 @@
             <form class="acc-modal-form" id="txForm" onsubmit="return submitTransaction(event)">
                 <input type="hidden" id="txAccountId" />
                 <div class="acc-form-group acc-tx-account-info">
-                    <label>Account</label>
+                    <label th:text="#{accounts.tx.account}">Account</label>
                     <span class="acc-tx-account-name" id="txAccountName">-</span>
                 </div>
                 <div class="acc-form-group">
-                    <label for="txType">Type <span class="required">*</span></label>
+                    <label for="txType" th:text="#{accounts.tx.type} + ' *'">Type *</label>
                     <select id="txType" name="type" required>
-                        <option value="DEPOSIT">Deposit (입금)</option>
-                        <option value="WITHDRAWAL">Withdrawal (출금)</option>
+                        <option value="DEPOSIT" th:text="#{accounts.tx.deposit}">Deposit</option>
+                        <option value="WITHDRAWAL" th:text="#{accounts.tx.withdrawal}">Withdrawal</option>
                     </select>
                 </div>
                 <div class="acc-form-group">
-                    <label for="txAmount">Amount <span class="required">*</span></label>
+                    <label for="txAmount" th:text="#{accounts.tx.amount} + ' *'">Amount *</label>
                     <div class="acc-tx-amount-wrap">
                         <input type="number" id="txAmount" name="amount" placeholder="0.00" step="0.01" min="0.01" required />
                         <span class="acc-tx-currency" id="txCurrency">USD</span>
                     </div>
                 </div>
                 <div class="acc-form-group">
-                    <label for="txMemo">Memo</label>
-                    <input type="text" id="txMemo" name="memo" placeholder="메모 (선택)" maxlength="200" />
+                    <label for="txMemo" th:text="#{accounts.tx.memo}">Memo</label>
+                    <input type="text" id="txMemo" name="memo" th:placeholder="#{accounts.tx.memo_placeholder}" maxlength="200" />
                 </div>
                 <div class="acc-modal-footer">
-                    <button class="acc-modal-btn cancel" type="button" onclick="closeTxModal()">Cancel</button>
-                    <button class="acc-modal-btn submit" type="submit" id="txSubmitBtn">Confirm</button>
+                    <button class="acc-modal-btn cancel" type="button" onclick="closeTxModal()" th:text="#{accounts.modal.cancel}">Cancel</button>
+                    <button class="acc-modal-btn submit" type="submit" id="txSubmitBtn" th:text="#{accounts.tx.confirm}">Confirm</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script>
+    <script th:inline="javascript">
+    /* ── i18n Messages ── */
+    var MSG = {
+        nameDuplicate: /*[[#{accounts.msg.name_duplicate}]]*/ '',
+        created: /*[[#{accounts.msg.created}]]*/ '',
+        createFailed: /*[[#{accounts.msg.create_failed}]]*/ '',
+        serverError: /*[[#{accounts.msg.server_error}]]*/ '',
+        createBtn: /*[[#{accounts.modal.create}]]*/ '',
+        creatingBtn: /*[[#{accounts.modal.creating}]]*/ '',
+        depositDone: /*[[#{accounts.msg.deposit_done}]]*/ '',
+        withdrawalDone: /*[[#{accounts.msg.withdrawal_done}]]*/ '',
+        txFailed: /*[[#{accounts.msg.tx_failed}]]*/ '',
+        confirmBtn: /*[[#{accounts.tx.confirm}]]*/ '',
+        processingBtn: /*[[#{accounts.tx.processing}]]*/ ''
+    };
+
     /* ── Modal Open / Close ── */
     function openAddModal() {
         var modal = document.getElementById('addAccountModal');
@@ -230,7 +250,7 @@
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
                     if (data.data && !data.data.available) {
-                        errorEl.textContent = '이미 동일한 이름의 계좌가 존재합니다.';
+                        errorEl.textContent = MSG.nameDuplicate;
                         isNameAvailable = false;
                     } else {
                         errorEl.textContent = '';
@@ -248,7 +268,7 @@
         if (isCreateSubmitting) return false;
 
         if (!isNameAvailable) {
-            document.getElementById('accountNameError').textContent = '이미 동일한 이름의 계좌가 존재합니다.';
+            document.getElementById('accountNameError').textContent = MSG.nameDuplicate;
             document.getElementById('accountName').focus();
             return false;
         }
@@ -256,7 +276,7 @@
         isCreateSubmitting = true;
         var submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Creating...';
+        submitBtn.textContent = MSG.creatingBtn;
 
         var body = {
             accountName: document.getElementById('accountName').value.trim(),
@@ -278,21 +298,21 @@
         .then(function (data) {
             if (data.success) {
                 closeAddModal();
-                showSuccessAndReload('계좌가 생성되었습니다.', function () {
+                showSuccessAndReload(MSG.created, function () {
                     window.location.reload();
                 });
             } else {
-                showAlert(data.message || '계좌 등록에 실패했습니다.');
+                showAlert(data.message || MSG.createFailed);
                 isCreateSubmitting = false;
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Create Account';
+                submitBtn.textContent = MSG.createBtn;
             }
         })
         .catch(function () {
-            showAlert('서버 오류가 발생했습니다.');
+            showAlert(MSG.serverError);
             isCreateSubmitting = false;
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Create Account';
+            submitBtn.textContent = MSG.createBtn;
         });
 
         return false;
@@ -321,7 +341,7 @@
         document.getElementById('txAmount').value = '';
         document.getElementById('txMemo').value = '';
         document.getElementById('txSubmitBtn').disabled = false;
-        document.getElementById('txSubmitBtn').textContent = 'Confirm';
+        document.getElementById('txSubmitBtn').textContent = MSG.confirmBtn;
 
         var modal = document.getElementById('txModal');
         modal.classList.add('active');
@@ -353,7 +373,7 @@
         isTxSubmitting = true;
         var submitBtn = document.getElementById('txSubmitBtn');
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Processing...';
+        submitBtn.textContent = MSG.processingBtn;
 
         var accountId = document.getElementById('txAccountId').value;
         var type = document.getElementById('txType').value;
@@ -377,23 +397,23 @@
         .then(function (res) { return res.json(); })
         .then(function (data) {
             if (data.success) {
-                var msg = type === 'DEPOSIT' ? '입금이 완료되었습니다.' : '출금이 완료되었습니다.';
+                var msg = type === 'DEPOSIT' ? MSG.depositDone : MSG.withdrawalDone;
                 closeTxModal();
                 showSuccessAndReload(msg, function () {
                     window.location.reload();
                 });
             } else {
-                showAlert(data.message || '처리에 실패했습니다.');
+                showAlert(data.message || MSG.txFailed);
                 isTxSubmitting = false;
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Confirm';
+                submitBtn.textContent = MSG.confirmBtn;
             }
         })
         .catch(function () {
-            showAlert('서버 오류가 발생했습니다.');
+            showAlert(MSG.serverError);
             isTxSubmitting = false;
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Confirm';
+            submitBtn.textContent = MSG.confirmBtn;
         });
 
         return false;

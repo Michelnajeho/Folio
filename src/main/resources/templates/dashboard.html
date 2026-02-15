@@ -9,54 +9,60 @@
 <div layout:fragment="content">
 
     <div class="dashboard-header">
-        <h1>Dashboard</h1>
-        <p>트레이딩 현황을 한눈에 확인하세요.</p>
+        <h1 th:text="#{dashboard.title}">Dashboard</h1>
+        <p th:text="#{dashboard.subtitle}">트레이딩 현황을 한눈에 확인하세요.</p>
     </div>
 
     <div class="stat-grid">
         <div class="stat-card">
-            <div class="stat-label">Total Trades</div>
-            <div class="stat-value">0</div>
+            <div class="stat-label" th:text="#{dashboard.total_trades}">Total Trades</div>
+            <div class="stat-value" th:text="${stats.totalTrades}">0</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Win Rate</div>
-            <div class="stat-value">-</div>
+            <div class="stat-label" th:text="#{dashboard.win_rate}">Win Rate</div>
+            <div class="stat-value"
+                 th:classappend="${stats.winRatePositive ? 'positive' : ''}"
+                 th:text="${stats.winRate}">-</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Total P&amp;L</div>
-            <div class="stat-value">₩0</div>
+            <div class="stat-label" th:text="#{dashboard.total_pnl}">Total P&amp;L</div>
+            <div class="stat-value"
+                 th:classappend="${stats.totalPnlPositive ? 'positive' : 'negative'}"
+                 th:text="${stats.totalPnl}">₩0</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Avg Return</div>
-            <div class="stat-value">-</div>
+            <div class="stat-label" th:text="#{dashboard.avg_return}">Avg Return</div>
+            <div class="stat-value"
+                 th:classappend="${stats.avgReturnPositive ? 'positive' : 'negative'}"
+                 th:text="${stats.avgReturn}">-</div>
         </div>
     </div>
 
     <!-- Activity Row: Balance + Calendar -->
     <div class="activity-section">
-        <h2 class="section-title">Activity</h2>
+        <h2 class="section-title" th:text="#{dashboard.activity}">Activity</h2>
         <div class="activity-row">
             <!-- Total Balance Card -->
             <div class="balance-overview">
-                <div class="balance-overview-label">Total Balance</div>
+                <div class="balance-overview-label" th:text="#{dashboard.total_balance}">Total Balance</div>
                 <div class="balance-overview-value"
                      th:text="${'$' + #numbers.formatDecimal(summary.totalBalance, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
                 <div class="balance-overview-sub">
                     <span class="balance-overview-accounts"
-                          th:text="${summary.accountCount + ' account' + (summary.accountCount != 1 ? 's' : '')}">0 accounts</span>
+                          th:text="#{dashboard.accounts(${summary.accountCount})}">0 accounts</span>
                 </div>
             </div>
             <!-- Calendar -->
             <div class="activity-card">
                 <div class="activity-calendar" id="activityCalendar"></div>
                 <div class="activity-legend">
-                    <span class="activity-legend-label">Less</span>
+                    <span class="activity-legend-label" th:text="#{dashboard.less}">Less</span>
                     <span class="activity-legend-cell" data-level="0"></span>
                     <span class="activity-legend-cell" data-level="1"></span>
                     <span class="activity-legend-cell" data-level="2"></span>
                     <span class="activity-legend-cell" data-level="3"></span>
                     <span class="activity-legend-cell" data-level="4"></span>
-                    <span class="activity-legend-label">More</span>
+                    <span class="activity-legend-label" th:text="#{dashboard.more}">More</span>
                 </div>
             </div>
         </div>
@@ -65,7 +71,7 @@
     <!-- Monthly Trade Calendar -->
     <div class="trade-cal-section">
         <div class="trade-cal-header">
-            <h2 class="section-title">Trade Calendar</h2>
+            <h2 class="section-title" th:text="#{dashboard.trade_calendar}">Trade Calendar</h2>
             <div class="trade-cal-nav">
                 <button class="trade-cal-nav-btn" id="tcPrev" type="button">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
@@ -81,14 +87,40 @@
         </div>
     </div>
 
-    <script>
+    <script th:inline="javascript">
+        var __lang = /*[[${#locale.language}]]*/ 'ko';
+
+        /* ── 서버에서 전달받은 날짜별 거래 요약 데이터 ── */
+        var __dailySummary = /*[[${dailySummary}]]*/ [];
+
+        /* dailySummary → { 'YYYY-MM-DD': { trades: N, pnl: N } } 로 변환 */
+        var tradeDataMap = {};
+        (function () {
+            for (var i = 0; i < __dailySummary.length; i++) {
+                var row = __dailySummary[i];
+                /* trade_date 는 서버에서 java.sql.Date 또는 String 으로 올 수 있음 */
+                var dateStr = String(row.trade_date);
+                /* YYYY-MM-DD 형식으로 정규화 */
+                if (dateStr.length === 10) {
+                    tradeDataMap[dateStr] = {
+                        trades: Number(row.trade_count) || 0,
+                        pnl: Number(row.daily_pnl) || 0
+                    };
+                }
+            }
+        })();
+
+        /* ══════════════════════════════════
+           Activity Calendar (Heatmap)
+        ══════════════════════════════════ */
         (function () {
             var calendar = document.getElementById('activityCalendar');
             if (!calendar) return;
 
             var DAY_MS = 86400000;
-            var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            var monthNames = __lang === 'ko'
+                ? ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+                : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
             var today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -116,8 +148,29 @@
             var cellGap = 3;
             var colWidth = cellSize + cellGap;
 
+            /* ── 히트맵 레벨 계산: 거래 건수 기반 ── */
+            function getLevel(dateKey) {
+                var data = tradeDataMap[dateKey];
+                if (!data) return 0;
+                var count = data.trades;
+                if (count >= 5) return 4;
+                if (count >= 3) return 3;
+                if (count >= 2) return 2;
+                if (count >= 1) return 1;
+                return 0;
+            }
+
+            function toDateKey(d) {
+                var y = d.getFullYear();
+                var m = d.getMonth() + 1;
+                var day = d.getDate();
+                return y + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+            }
+
             /* ── 요일 라벨 ── */
-            var dayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+            var dayLabels = __lang === 'ko'
+                ? ['', '월', '', '수', '', '금', '']
+                : ['', 'Mon', '', 'Wed', '', 'Fri', ''];
 
             var html = '<div class="cal-wrapper">';
 
@@ -142,8 +195,6 @@
             html += '</div>';
 
             /* ── 셀 그리드 ── */
-            /* grid-auto-flow: column → 세로(7칸)를 먼저 채우고 다음 열로 이동 */
-            /* 따라서 출력 순서: col(주) → row(요일) */
             html += '<div class="cal-grid">';
             for (var col = 0; col < totalWeeks; col++) {
                 for (var row = 0; row < 7; row++) {
@@ -151,7 +202,17 @@
                     if (!cell || cell.getTime() > todayTs) {
                         html += '<div class="cal-cell cal-cell-future"></div>';
                     } else {
-                        html += '<div class="cal-cell" data-date="' + fmtDate(cell) + '" data-level="0"></div>';
+                        var dateKey = toDateKey(cell);
+                        var level = getLevel(dateKey);
+                        var data = tradeDataMap[dateKey];
+                        var tooltipText = fmtDate(cell);
+                        if (data) {
+                            var tradeLabel = __lang === 'ko'
+                                ? data.trades + '건'
+                                : data.trades + ' trade' + (data.trades > 1 ? 's' : '');
+                            tooltipText += ' · ' + tradeLabel;
+                        }
+                        html += '<div class="cal-cell" data-date="' + tooltipText + '" data-level="' + level + '"></div>';
                     }
                 }
             }
@@ -187,6 +248,9 @@
             });
 
             function fmtDate(d) {
+                if (__lang === 'ko') {
+                    return d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일';
+                }
                 return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
             }
         })();
@@ -201,49 +265,23 @@
             var nextBtn = document.getElementById('tcNext');
             if (!grid) return;
 
-            var monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'];
-            var dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            var monthNames = __lang === 'ko'
+                ? ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+                : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            var dayHeaders = __lang === 'ko'
+                ? ['일', '월', '화', '수', '목', '금', '토']
+                : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
             var now = new Date();
             var viewYear = now.getFullYear();
             var viewMonth = now.getMonth();
 
-            /* ── 임시 데이터: { 'YYYY-MM-DD': { trades: N, pnl: N } } ── */
-            var sampleData = {};
-            (function generateSample() {
-                var y = now.getFullYear();
-                var m = now.getMonth();
-                /* 이번 달 샘플 */
-                var entries = [
-                    [1, 3, 520], [2, 1, -180], [4, 2, 340],
-                    [5, 4, 1280], [7, 1, -90], [8, 2, 460],
-                    [10, 3, -320], [11, 5, 2150], [12, 2, 780],
-                    [13, 1, -440], [14, 3, 960]
-                ];
-                for (var i = 0; i < entries.length; i++) {
-                    var key = y + '-' + pad(m + 1) + '-' + pad(entries[i][0]);
-                    sampleData[key] = { trades: entries[i][1], pnl: entries[i][2] };
-                }
-                /* 지난 달 샘플 */
-                var pm = m === 0 ? 11 : m - 1;
-                var py = m === 0 ? y - 1 : y;
-                var prevEntries = [
-                    [3, 2, 310], [5, 1, -150], [8, 3, 870],
-                    [10, 2, -260], [12, 4, 1540], [15, 1, 220],
-                    [18, 3, -680], [20, 2, 430], [22, 5, 2890],
-                    [25, 1, -120], [27, 3, 760], [28, 2, -340]
-                ];
-                for (var j = 0; j < prevEntries.length; j++) {
-                    var key2 = py + '-' + pad(pm + 1) + '-' + pad(prevEntries[j][0]);
-                    sampleData[key2] = { trades: prevEntries[j][1], pnl: prevEntries[j][2] };
-                }
-            })();
-
             function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
             function render() {
-                monthLabel.textContent = monthNames[viewMonth] + ' ' + viewYear;
+                monthLabel.textContent = __lang === 'ko'
+                    ? viewYear + '년 ' + monthNames[viewMonth]
+                    : monthNames[viewMonth] + ' ' + viewYear;
 
                 var firstDay = new Date(viewYear, viewMonth, 1).getDay();
                 var daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
@@ -267,7 +305,7 @@
                     var dateKey = viewYear + '-' + pad(viewMonth + 1) + '-' + pad(d);
                     var cellDate = new Date(viewYear, viewMonth, d);
                     var isToday = cellDate.getTime() === today.getTime();
-                    var data = sampleData[dateKey];
+                    var data = tradeDataMap[dateKey];
 
                     var cls = 'tc-cell';
                     if (isToday) cls += ' tc-today';
@@ -279,7 +317,10 @@
                         var pnlCls = data.pnl >= 0 ? 'tc-pnl-pos' : 'tc-pnl-neg';
                         var pnlSign = data.pnl >= 0 ? '+' : '-';
                         html += '<div class="tc-info">';
-                        html += '<span class="tc-trades">' + data.trades + ' trade' + (data.trades > 1 ? 's' : '') + '</span>';
+                        var tradeText = __lang === 'ko'
+                            ? data.trades + '건'
+                            : data.trades + ' trade' + (data.trades > 1 ? 's' : '');
+                        html += '<span class="tc-trades">' + tradeText + '</span>';
                         html += '<span class="' + pnlCls + '">' + pnlSign + '$' + Math.abs(data.pnl).toLocaleString() + '</span>';
                         html += '</div>';
                     }

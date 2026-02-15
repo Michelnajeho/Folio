@@ -10,12 +10,28 @@
     </div>
     <div class="header-right">
         <span class="header-user" th:text="${#authentication.name}">Guest</span>
+        <select class="header-lang-select" id="langSelect">
+            <option value="ko" th:selected="${#locale.language == 'ko'}">KR</option>
+            <option value="en" th:selected="${#locale.language == 'en'}">EN</option>
+        </select>
         <form th:action="@{/logout}" method="post" style="display:inline;">
-            <button type="submit" class="header-logout" title="Logout">
+            <button type="submit" class="header-logout" th:title="#{common.logout}">
                 <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
         </form>
     </div>
+
+    <script>
+        (function () {
+            var sel = document.getElementById('langSelect');
+            if (!sel) return;
+            sel.addEventListener('change', function () {
+                var url = new URL(window.location.href);
+                url.searchParams.set('lang', sel.value);
+                window.location.href = url.toString();
+            });
+        })();
+    </script>
 </header>
 </body>
 </html>

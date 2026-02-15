@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trade.folio.domain.trade.mapper.TradeMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO folio.trade (account_id, type, ticker, position, pnl, memo, traded_at)
+        VALUES (#{accountId}, #{type}, #{ticker}, #{position}, #{pnl}, #{memo}, NOW())
+    </insert>
+
+    <select id="findByAccountId" resultType="com.trade.folio.domain.trade.entity.Trade">
+        SELECT id, account_id, type, ticker, position, pnl, memo, traded_at, created_at
+          FROM folio.trade
+         WHERE account_id = #{accountId}
+         ORDER BY traded_at DESC
+    </select>
+
+    <select id="findById" resultType="com.trade.folio.domain.trade.entity.Trade">
+        SELECT id, account_id, type, ticker, position, pnl, memo, traded_at, created_at
+          FROM folio.trade
+         WHERE id = #{id}
+    </select>
+
+    <update id="update">
+        UPDATE folio.trade
+           SET type = #{type},
+               ticker = #{ticker},
+               position = #{position},
+               pnl = #{pnl},
+               memo = #{memo}
+         WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM folio.trade
+         WHERE id = #{id}
+    </delete>
+
+    <select id="sumMonthlyPnlByAccountId" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(pnl), 0)
+          FROM folio.trade
+         WHERE account_id = #{accountId}
+           AND DATE_TRUNC('month', traded_at AT TIME ZONE 'Asia/Seoul')
+             = DATE_TRUNC('month', CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Seoul')
+    </select>
+
+    <select id="sumTodayPnlByAccountId" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(pnl), 0)
+          FROM folio.trade
+         WHERE account_id = #{accountId}
+           AND (traded_at AT TIME ZONE 'Asia/Seoul')::DATE
+             = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Seoul')::DATE
+    </select>
+
+    <select id="sumMonthlyPnlByMemberId" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(t.pnl), 0)
+          FROM folio.trade t
+          JOIN folio.account a ON a.id = t.account_id
+         WHERE a.member_id = #{memberId}
+           AND DATE_TRUNC('month', t.traded_at AT TIME ZONE 'Asia/Seoul')
+             = DATE_TRUNC('month', CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Seoul')
+    </select>
+
+    <select id="findByMemberId" resultType="com.trade.folio.domain.trade.entity.Trade">
+        SELECT t.id, t.account_id, t.type, t.ticker, t.position, t.pnl, t.memo, t.traded_at, t.created_at
+          FROM folio.trade t
+          JOIN folio.account a ON a.id = t.account_id
+         WHERE a.member_id = #{memberId}
+         ORDER BY t.traded_at DESC
+    </select>
+
+    <select id="findDailySummaryByMemberId" resultType="java.util.HashMap">
+        SELECT (t.traded_at AT TIME ZONE 'Asia/Seoul')::DATE AS trade_date,
+               COUNT(*)                                       AS trade_count,
+               SUM(t.pnl)                                     AS daily_pnl
+          FROM folio.trade t
+          JOIN folio.account a ON a.id = t.account_id
+         WHERE a.member_id = #{memberId}
+         GROUP BY (t.traded_at AT TIME ZONE 'Asia/Seoul')::DATE
+         ORDER BY trade_date
+    </select>
+
+</mapper>

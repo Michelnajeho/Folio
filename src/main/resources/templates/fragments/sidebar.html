@@ -8,13 +8,13 @@
             <li th:if="${item.menuUrl != null}">
                 <a th:href="@{${item.menuUrl}}" th:classappend="${menu == item.menuCode} ? 'active'">
                     <span th:utext="${item.icon}"></span>
-                    <span th:text="${item.menuName}"></span>
+                    <span th:text="#{${'menu.' + item.menuCode}}"></span>
                 </a>
             </li>
             <li th:if="${item.menuUrl == null}" class="sidebar-group">
                 <span class="sidebar-group-label">
                     <span th:utext="${item.icon}"></span>
-                    <span th:text="${item.menuName}"></span>
+                    <span th:text="#{${'menu.' + item.menuCode}}"></span>
                 </span>
                 <!-- 2뎁스 -->
                 <ul class="sidebar-submenu" th:if="${!item.children.isEmpty()}">
@@ -22,20 +22,20 @@
                         <li th:if="${child.menuUrl != null}">
                             <a th:href="@{${child.menuUrl}}" th:classappend="${menu == child.menuCode} ? 'active'">
                                 <span th:utext="${child.icon}"></span>
-                                <span th:text="${child.menuName}"></span>
+                                <span th:text="#{${'menu.' + child.menuCode}}"></span>
                             </a>
                         </li>
                         <li th:if="${child.menuUrl == null}" class="sidebar-group">
                             <span class="sidebar-group-label">
                                 <span th:utext="${child.icon}"></span>
-                                <span th:text="${child.menuName}"></span>
+                                <span th:text="#{${'menu.' + child.menuCode}}"></span>
                             </span>
                             <!-- 3뎁스 -->
                             <ul class="sidebar-submenu" th:if="${!child.children.isEmpty()}">
                                 <li th:each="grandchild : ${child.children}">
                                     <a th:href="@{${grandchild.menuUrl}}" th:classappend="${menu == grandchild.menuCode} ? 'active'">
                                         <span th:utext="${grandchild.icon}"></span>
-                                        <span th:text="${grandchild.menuName}"></span>
+                                        <span th:text="#{${'menu.' + grandchild.menuCode}}"></span>
                                     </a>
                                 </li>
                             </ul>
@@ -50,7 +50,7 @@
         <form th:action="@{/logout}" method="post" class="sidebar-logout-form">
             <button type="submit" class="sidebar-logout">
                 <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                <span>Logout</span>
+                <span th:text="#{common.logout}">Logout</span>
             </button>
         </form>
     </div>

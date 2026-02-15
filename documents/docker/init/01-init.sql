@@ -159,3 +159,35 @@ COMMENT ON COLUMN folio.account_balance_snapshot.created_at         IS '생성�
 -- 인덱스
 CREATE INDEX idx_balance_snap_account_id   ON folio.account_balance_snapshot (account_id);
 CREATE INDEX idx_balance_snap_date         ON folio.account_balance_snapshot (snapshot_date);
+
+-- 트레이딩 기록 테이블
+CREATE TABLE folio.trade (
+    id              BIGINT          GENERATED ALWAYS AS IDENTITY PRIMARY KEY,   -- 거래 ID
+    account_id      BIGINT          NOT NULL,                                   -- 계좌 FK
+    type            VARCHAR(20)     NOT NULL,                                   -- 유형 (STOCK / CRYPTO / FUTURES)
+    ticker          VARCHAR(30)     NOT NULL,                                   -- 종목 (BTC, AAPL 등)
+    position        VARCHAR(10)     NOT NULL,                                   -- 포지션 (LONG / SHORT)
+    pnl             NUMERIC(18,4)   NOT NULL DEFAULT 0,                         -- 손익
+    memo            VARCHAR(200)    DEFAULT NULL,                               -- 메모 (선택)
+    traded_at       TIMESTAMPTZ     NOT NULL,                                   -- 거래 일시
+    created_at      TIMESTAMPTZ     NOT NULL DEFAULT NOW(),                     -- 생성일
+
+    CONSTRAINT fk_trade_account   FOREIGN KEY (account_id) REFERENCES folio.account (id) ON DELETE CASCADE,
+    CONSTRAINT chk_trade_type     CHECK (type IN ('STOCK', 'CRYPTO', 'FUTURES')),
+    CONSTRAINT chk_trade_position CHECK (position IN ('LONG', 'SHORT'))
+);
+
+COMMENT ON TABLE  folio.trade              IS '트레이딩 기록';
+COMMENT ON COLUMN folio.trade.id           IS '거래 ID';
+COMMENT ON COLUMN folio.trade.account_id   IS '계좌 FK';
+COMMENT ON COLUMN folio.trade.type         IS '유형 (STOCK / CRYPTO / FUTURES)';
+COMMENT ON COLUMN folio.trade.ticker       IS '종목 (BTC, AAPL 등)';
+COMMENT ON COLUMN folio.trade.position     IS '포지션 (LONG / SHORT)';
+COMMENT ON COLUMN folio.trade.pnl          IS '손익';
+COMMENT ON COLUMN folio.trade.memo         IS '메모';
+COMMENT ON COLUMN folio.trade.traded_at    IS '거래 일시';
+COMMENT ON COLUMN folio.trade.created_at   IS '생성일';
+
+-- 인덱스
+CREATE INDEX idx_trade_account_id ON folio.trade (account_id);
+CREATE INDEX idx_trade_traded_at  ON folio.trade (traded_at);

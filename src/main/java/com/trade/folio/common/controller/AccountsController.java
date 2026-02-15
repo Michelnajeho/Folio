@@ -6,6 +6,7 @@ import com.trade.folio.domain.account.service.AccountService;
 import com.trade.folio.domain.account.service.AccountTransactionService;
 import com.trade.folio.domain.member.entity.Member;
 import com.trade.folio.domain.member.mapper.MemberMapper;
+import com.trade.folio.domain.trade.service.TradeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,6 +24,7 @@ public class AccountsController {
 
     private final AccountService accountService;
     private final AccountTransactionService transactionService;
+    private final TradeService tradeService;
     private final MemberMapper memberMapper;
 
     @GetMapping("/accounts")
@@ -38,10 +40,17 @@ public class AccountsController {
             todayMap.put(acc.getId(), transactionService.getTodaySummary(acc.getId()));
         }
 
+        /* 계좌별 오늘 Trading P&L */
+        Map<Long, BigDecimal> tradingPnlMap = new HashMap<>();
+        for (Account acc : accounts) {
+            tradingPnlMap.put(acc.getId(), tradeService.getTodayPnlByAccountId(acc.getId()));
+        }
+
         model.addAttribute("menu", "accounts");
         model.addAttribute("accounts", accounts);
         model.addAttribute("summary", summary);
         model.addAttribute("todayMap", todayMap);
+        model.addAttribute("tradingPnlMap", tradingPnlMap);
         return "accounts";
     }
 }

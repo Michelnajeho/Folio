@@ -11,13 +11,13 @@
     <div class="th-header">
         <div class="th-header-top">
             <div>
-                <h1>Trade History</h1>
-                <p>트레이딩 기록을 확인하고 관리하세요.</p>
+                <h1 th:text="#{trading.title}">Trade History</h1>
+                <p th:text="#{trading.subtitle}">Review and manage your trading records.</p>
             </div>
             <!-- Account Selector -->
             <div class="th-account-selector" th:if="${#lists.size(accounts) > 0}">
                 <select class="th-select th-account-select" id="accountSelect">
-                    <option value="">Select Account</option>
+                    <option value="" th:text="#{trading.select_account}">Select Account</option>
                     <option th:each="acc : ${accounts}"
                             th:value="${acc.id}"
                             th:text="${acc.accountName + ' (' + acc.currency + ')'}"
@@ -39,37 +39,51 @@
     <div class="th-stat-grid" th:if="${selectedAccount != null}">
         <!-- Row 1 -->
         <div class="th-stat-card">
-            <div class="th-stat-label">Total Trades</div>
-            <div class="th-stat-value">47</div>
+            <div class="th-stat-label" th:text="#{trading.total_trades}">Total Trades</div>
+            <div class="th-stat-value" th:text="${stats.totalTrades}">0</div>
         </div>
         <div class="th-stat-card">
-            <div class="th-stat-label">Win Rate</div>
-            <div class="th-stat-value positive">63.8%</div>
+            <div class="th-stat-label" th:text="#{trading.win_rate}">Win Rate</div>
+            <div class="th-stat-value"
+                 th:classappend="${stats.winRatePositive ? 'positive' : ''}"
+                 th:text="${stats.winRate}">-</div>
         </div>
         <div class="th-stat-card">
-            <div class="th-stat-label">Profit Factor</div>
-            <div class="th-stat-value positive">1.82</div>
+            <div class="th-stat-label" th:text="#{trading.profit_factor}">Profit Factor</div>
+            <div class="th-stat-value"
+                 th:classappend="${stats.profitFactorPositive ? 'positive' : (stats.profitFactorNegative ? 'negative' : '')}"
+                 th:text="${stats.profitFactor}">-</div>
         </div>
         <div class="th-stat-card">
-            <div class="th-stat-label">Avg P&amp;L</div>
-            <div class="th-stat-value positive">+$128.40</div>
+            <div class="th-stat-label" th:text="#{trading.avg_pnl}">Avg P&amp;L</div>
+            <div class="th-stat-value"
+                 th:classappend="${stats.avgPnl.signum() > 0 ? 'positive' : (stats.avgPnl.signum() < 0 ? 'negative' : '')}"
+                 th:text="${(stats.avgPnl.signum() > 0 ? '+' : '') + #numbers.formatDecimal(stats.avgPnl, 1, 'COMMA', 2, 'POINT')}">-</div>
         </div>
         <!-- Row 2 -->
         <div class="th-stat-card">
-            <div class="th-stat-label">Best Trade</div>
-            <div class="th-stat-value positive">+$2,890</div>
+            <div class="th-stat-label" th:text="#{trading.best_trade}">Best Trade</div>
+            <div class="th-stat-value"
+                 th:classappend="${stats.bestTrade.signum() > 0 ? 'positive' : (stats.bestTrade.signum() < 0 ? 'negative' : '')}"
+                 th:text="${stats.totalTrades > 0 ? ((stats.bestTrade.signum() > 0 ? '+' : '') + #numbers.formatDecimal(stats.bestTrade, 1, 'COMMA', 2, 'POINT')) : '-'}">-</div>
         </div>
         <div class="th-stat-card">
-            <div class="th-stat-label">Worst Trade</div>
-            <div class="th-stat-value negative">-$680</div>
+            <div class="th-stat-label" th:text="#{trading.worst_trade}">Worst Trade</div>
+            <div class="th-stat-value"
+                 th:classappend="${stats.worstTrade.signum() < 0 ? 'negative' : (stats.worstTrade.signum() > 0 ? 'positive' : '')}"
+                 th:text="${stats.totalTrades > 0 ? ((stats.worstTrade.signum() > 0 ? '+' : '') + #numbers.formatDecimal(stats.worstTrade, 1, 'COMMA', 2, 'POINT')) : '-'}">-</div>
         </div>
         <div class="th-stat-card">
-            <div class="th-stat-label">Streak</div>
-            <div class="th-stat-value positive">W3</div>
+            <div class="th-stat-label" th:text="#{trading.streak}">Streak</div>
+            <div class="th-stat-value"
+                 th:classappend="${stats.streakPositive ? 'positive' : (stats.streakNegative ? 'negative' : '')}"
+                 th:text="${stats.streak}">-</div>
         </div>
         <div class="th-stat-card">
-            <div class="th-stat-label">This Month P&amp;L</div>
-            <div class="th-stat-value positive">+$3,420</div>
+            <div class="th-stat-label" th:text="#{trading.this_month_pnl}">This Month P&amp;L</div>
+            <div class="th-stat-value"
+                 th:classappend="${stats.monthPnl.signum() > 0 ? 'positive' : (stats.monthPnl.signum() < 0 ? 'negative' : '')}"
+                 th:text="${(stats.monthPnl.signum() > 0 ? '+' : '') + #numbers.formatDecimal(stats.monthPnl, 1, 'COMMA', 2, 'POINT')}">-</div>
         </div>
     </div>
 
@@ -78,52 +92,87 @@
         <!-- Toolbar -->
         <div class="th-toolbar">
             <div class="th-toolbar-left">
-                <select class="th-select">
-                    <option value="">All Types</option>
-                    <option value="stock">Stock</option>
-                    <option value="crypto">Crypto</option>
-                    <option value="futures">Futures</option>
+                <select class="th-select" id="filterType">
+                    <option value="" th:text="#{trading.all_types}">All Types</option>
+                    <option value="STOCK" th:text="#{trading.stock}">Stock</option>
+                    <option value="CRYPTO" th:text="#{trading.crypto}">Crypto</option>
+                    <option value="FUTURES" th:text="#{trading.futures}">Futures</option>
                 </select>
-                <select class="th-select">
-                    <option value="">All Positions</option>
-                    <option value="long">LONG</option>
-                    <option value="short">SHORT</option>
+                <select class="th-select" id="filterPosition">
+                    <option value="" th:text="#{trading.all_positions}">All Positions</option>
+                    <option value="LONG" th:text="#{trading.long}">LONG</option>
+                    <option value="SHORT" th:text="#{trading.short}">SHORT</option>
                 </select>
             </div>
             <div class="th-toolbar-right">
-                <button class="th-btn-add" type="button">+ New Trade</button>
+                <button class="th-btn-add" type="button" onclick="openNewTradeModal()" th:text="#{trading.new_trade}">+ New Trade</button>
             </div>
         </div>
 
         <!-- Data Table -->
-        <div class="th-table-wrap">
+        <div class="th-table-wrap" th:if="${#lists.size(trades) > 0}">
             <table class="th-table">
                 <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Ticker</th>
-                    <th>Position</th>
-                    <th>P&amp;L</th>
-                    <th>Memo</th>
+                    <th th:text="#{trading.col_date}">Date</th>
+                    <th th:text="#{trading.col_type}">Type</th>
+                    <th th:text="#{trading.col_ticker}">Ticker</th>
+                    <th th:text="#{trading.col_position}">Position</th>
+                    <th th:text="#{trading.col_pnl}">P&amp;L</th>
+                    <th th:text="#{trading.col_memo}">Memo</th>
+                    <th th:text="#{trading.col_actions}"></th>
                 </tr>
                 </thead>
-                <tbody>
-                <!-- Trading records will be rendered here in the future -->
+                <tbody id="tradeTableBody">
+                <tr th:each="trade : ${trades}"
+                    class="trade-row"
+                    th:data-type="${trade.type}"
+                    th:data-position="${trade.position}">
+                    <td th:text="${#temporals.format(trade.tradedAtKst, 'yyyy-MM-dd HH:mm')}">2026-02-15 14:30</td>
+                    <td>
+                        <span class="type-badge"
+                              th:classappend="${trade.type.toLowerCase()}"
+                              th:text="${trade.type}">STOCK</span>
+                    </td>
+                    <td class="ticker" th:text="${trade.ticker}">BTCUSDT</td>
+                    <td>
+                        <span class="position-badge"
+                              th:classappend="${trade.position.toLowerCase()}"
+                              th:text="${trade.position}">LONG</span>
+                    </td>
+                    <td th:classappend="${trade.pnl.signum() > 0 ? 'positive' : (trade.pnl.signum() < 0 ? 'negative' : '')}"
+                        th:text="${(trade.pnl.signum() > 0 ? '+' : '') + #numbers.formatDecimal(trade.pnl, 1, 'COMMA', 2, 'POINT')}">+100.00</td>
+                    <td class="memo" th:text="${trade.memo != null ? trade.memo : '-'}">-</td>
+                    <td class="th-td-action">
+                        <button class="th-edit-btn" type="button"
+                                th:data-id="${trade.id}"
+                                th:data-type="${trade.type}"
+                                th:data-ticker="${trade.ticker}"
+                                th:data-position="${trade.position}"
+                                th:data-pnl="${trade.pnl}"
+                                th:data-memo="${trade.memo != null ? trade.memo : ''}">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button class="th-delete-btn" type="button"
+                                th:data-id="${trade.id}">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
 
         <!-- Empty state for no trades yet -->
-        <div class="th-empty">
+        <div class="th-empty" th:if="${#lists.size(trades) == 0}">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
                 <rect x="9" y="3" width="6" height="4" rx="1"/>
                 <line x1="9" y1="12" x2="15" y2="12"/>
                 <line x1="9" y1="16" x2="13" y2="16"/>
             </svg>
-            <p>아직 기록된 거래가 없습니다.</p>
-            <p class="th-empty-sub">+ New Trade 버튼으로 거래를 기록해보세요.</p>
+            <p th:text="#{trading.empty_title}">No trades recorded yet.</p>
+            <p class="th-empty-sub" th:text="#{trading.empty_sub}">Record your first trade using the + New Trade button.</p>
         </div>
     </th:block>
 
@@ -133,27 +182,357 @@
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M3 7h18M3 12h18M3 17h18"/>
             </svg>
-            <p th:if="${#lists.size(accounts) > 0}">계좌를 선택하면 트레이딩 기록을 확인할 수 있습니다.</p>
-            <p th:if="${#lists.size(accounts) == 0}">아직 등록된 계좌가 없습니다.</p>
+            <p th:if="${#lists.size(accounts) > 0}" th:text="#{trading.empty_select}">Select an account to view trading records.</p>
+            <p th:if="${#lists.size(accounts) == 0}" th:text="#{trading.empty_no_account}">No accounts registered yet.</p>
             <p class="th-empty-sub" th:if="${#lists.size(accounts) == 0}">
-                <a th:href="@{/accounts}" class="th-empty-link">Accounts</a> 메뉴에서 계좌를 등록하세요.
+                <a th:href="@{/accounts}" class="th-empty-link" th:text="#{menu.accounts}">Accounts</a>
+                <span th:text="' ' + #{trading.empty_go_accounts_suffix}"> menu to register an account.</span>
             </p>
         </div>
     </th:block>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var sel = document.getElementById('accountSelect');
-            if (sel) {
-                sel.addEventListener('change', function () {
-                    if (this.value) {
-                        window.location.href = '/trading-history?accountId=' + this.value;
+    <!-- New Trade Modal -->
+    <div class="acc-modal-overlay" id="newTradeModal" th:if="${selectedAccount != null}">
+        <div class="acc-modal">
+            <div class="acc-modal-header">
+                <h2 th:text="#{trading.modal.new_title}">New Trade</h2>
+                <button class="acc-modal-close" type="button" onclick="closeNewTradeModal()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form class="acc-modal-form" id="newTradeForm" onsubmit="return submitNewTrade(event)">
+                <div class="acc-form-group">
+                    <label for="newTradeType" th:text="#{trading.modal.type} + ' *'">Type *</label>
+                    <select id="newTradeType" name="type" required>
+                        <option value="STOCK" th:text="#{trading.stock}">Stock</option>
+                        <option value="CRYPTO" th:text="#{trading.crypto}">Crypto</option>
+                        <option value="FUTURES" th:text="#{trading.futures}">Futures</option>
+                    </select>
+                </div>
+                <div class="acc-form-group">
+                    <label for="newTradeTicker" th:text="#{trading.modal.ticker} + ' *'">Ticker *</label>
+                    <input type="text" id="newTradeTicker" name="ticker" th:placeholder="#{trading.modal.ticker_placeholder}" maxlength="30" required />
+                </div>
+                <div class="acc-form-group">
+                    <label for="newTradePosition" th:text="#{trading.modal.position} + ' *'">Position *</label>
+                    <select id="newTradePosition" name="position" required>
+                        <option value="LONG" th:text="#{trading.long}">LONG</option>
+                        <option value="SHORT" th:text="#{trading.short}">SHORT</option>
+                    </select>
+                </div>
+                <div class="acc-form-group">
+                    <label for="newTradePnl" th:text="#{trading.modal.pnl} + ' *'">P&amp;L *</label>
+                    <input type="number" id="newTradePnl" name="pnl" placeholder="0.00" step="0.01" required />
+                </div>
+                <div class="acc-form-group">
+                    <label for="newTradeMemo" th:text="#{trading.modal.memo}">Memo</label>
+                    <input type="text" id="newTradeMemo" name="memo" th:placeholder="#{trading.modal.memo_placeholder}" maxlength="200" />
+                </div>
+                <div class="acc-modal-footer">
+                    <button class="acc-modal-btn cancel" type="button" onclick="closeNewTradeModal()" th:text="#{trading.modal.cancel}">Cancel</button>
+                    <button class="acc-modal-btn submit" type="submit" id="newTradeSubmitBtn" th:text="#{trading.modal.create}">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Trade Modal -->
+    <div class="acc-modal-overlay" id="editTradeModal" th:if="${selectedAccount != null}">
+        <div class="acc-modal">
+            <div class="acc-modal-header">
+                <h2 th:text="#{trading.modal.edit_title}">Edit Trade</h2>
+                <button class="acc-modal-close" type="button" onclick="closeEditTradeModal()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form class="acc-modal-form" id="editTradeForm" onsubmit="return submitEditTrade(event)">
+                <input type="hidden" id="editTradeId" />
+                <div class="acc-form-group">
+                    <label for="editTradeType" th:text="#{trading.modal.type} + ' *'">Type *</label>
+                    <select id="editTradeType" name="type" required>
+                        <option value="STOCK" th:text="#{trading.stock}">Stock</option>
+                        <option value="CRYPTO" th:text="#{trading.crypto}">Crypto</option>
+                        <option value="FUTURES" th:text="#{trading.futures}">Futures</option>
+                    </select>
+                </div>
+                <div class="acc-form-group">
+                    <label for="editTradeTicker" th:text="#{trading.modal.ticker} + ' *'">Ticker *</label>
+                    <input type="text" id="editTradeTicker" name="ticker" th:placeholder="#{trading.modal.ticker_placeholder}" maxlength="30" required />
+                </div>
+                <div class="acc-form-group">
+                    <label for="editTradePosition" th:text="#{trading.modal.position} + ' *'">Position *</label>
+                    <select id="editTradePosition" name="position" required>
+                        <option value="LONG" th:text="#{trading.long}">LONG</option>
+                        <option value="SHORT" th:text="#{trading.short}">SHORT</option>
+                    </select>
+                </div>
+                <div class="acc-form-group">
+                    <label for="editTradePnl" th:text="#{trading.modal.pnl} + ' *'">P&amp;L *</label>
+                    <input type="number" id="editTradePnl" name="pnl" placeholder="0.00" step="0.01" required />
+                </div>
+                <div class="acc-form-group">
+                    <label for="editTradeMemo" th:text="#{trading.modal.memo}">Memo</label>
+                    <input type="text" id="editTradeMemo" name="memo" th:placeholder="#{trading.modal.memo_placeholder}" maxlength="200" />
+                </div>
+                <div class="acc-modal-footer">
+                    <button class="acc-modal-btn cancel" type="button" onclick="closeEditTradeModal()" th:text="#{trading.modal.cancel}">Cancel</button>
+                    <button class="acc-modal-btn submit" type="submit" id="editTradeSubmitBtn" th:text="#{trading.modal.save}">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:if="${selectedAccount != null}" th:inline="javascript">
+    var accountId = /*[[${selectedAccount.id}]]*/ 0;
+
+    var MSG = {
+        createBtn: /*[[#{trading.modal.create}]]*/ '',
+        creatingBtn: /*[[#{trading.modal.creating}]]*/ '',
+        saveBtn: /*[[#{trading.modal.save}]]*/ '',
+        savingBtn: /*[[#{trading.modal.saving}]]*/ '',
+        created: /*[[#{trading.msg.created}]]*/ '',
+        createFailed: /*[[#{trading.msg.create_failed}]]*/ '',
+        updated: /*[[#{trading.msg.updated}]]*/ '',
+        updateFailed: /*[[#{trading.msg.update_failed}]]*/ '',
+        deleteTitle: /*[[#{trading.msg.delete_title}]]*/ '',
+        deleteDesc: /*[[#{trading.msg.delete_desc}]]*/ '',
+        deleted: /*[[#{trading.msg.deleted}]]*/ '',
+        deleteFailed: /*[[#{trading.msg.delete_failed}]]*/ '',
+        serverError: /*[[#{trading.msg.server_error}]]*/ '',
+        deleteBtn: /*[[#{account_detail.delete}]]*/ ''
+    };
+
+    var isReloading = false;
+    function showSuccessAndReload(message) {
+        showAlert({ type: 'success', message: message, duration: 1200 });
+        setTimeout(function () {
+            if (!isReloading) { isReloading = true; window.location.reload(); }
+        }, 1200);
+    }
+
+    function getCsrf() {
+        var token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        var header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        var h = { 'Content-Type': 'application/json' };
+        h[header] = token;
+        return h;
+    }
+
+    /* ══ New Trade Modal ══ */
+    function openNewTradeModal() {
+        document.getElementById('newTradeForm').reset();
+        document.getElementById('newTradeSubmitBtn').disabled = false;
+        document.getElementById('newTradeSubmitBtn').textContent = MSG.createBtn;
+        document.getElementById('newTradeModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setTimeout(function () { document.getElementById('newTradeTicker').focus(); }, 200);
+    }
+    function closeNewTradeModal() {
+        document.getElementById('newTradeModal').classList.remove('active');
+        document.body.style.overflow = '';
+        document.getElementById('newTradeForm').reset();
+    }
+    document.getElementById('newTradeModal').addEventListener('click', function (e) { if (e.target === this) closeNewTradeModal(); });
+
+    var isNewTradeSubmitting = false;
+    function submitNewTrade(e) {
+        e.preventDefault();
+        if (isNewTradeSubmitting) return false;
+        isNewTradeSubmitting = true;
+        var btn = document.getElementById('newTradeSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = MSG.creatingBtn;
+
+        var body = {
+            type: document.getElementById('newTradeType').value,
+            ticker: document.getElementById('newTradeTicker').value.trim(),
+            position: document.getElementById('newTradePosition').value,
+            pnl: parseFloat(document.getElementById('newTradePnl').value),
+            memo: document.getElementById('newTradeMemo').value.trim() || null
+        };
+
+        fetch('/api/account/' + accountId + '/trade', { method: 'POST', headers: getCsrf(), body: JSON.stringify(body) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (d.success) {
+                closeNewTradeModal();
+                showSuccessAndReload(MSG.created);
+            } else {
+                showAlert(d.message || MSG.createFailed);
+                isNewTradeSubmitting = false;
+                btn.disabled = false;
+                btn.textContent = MSG.createBtn;
+            }
+        }).catch(function () {
+            showAlert(MSG.serverError);
+            isNewTradeSubmitting = false;
+            btn.disabled = false;
+            btn.textContent = MSG.createBtn;
+        });
+        return false;
+    }
+
+    /* ══ Edit Trade Modal ══ */
+    function openEditTradeModal(tradeId, type, ticker, position, pnl, memo) {
+        document.getElementById('editTradeId').value = tradeId;
+        document.getElementById('editTradeType').value = type;
+        document.getElementById('editTradeTicker').value = ticker;
+        document.getElementById('editTradePosition').value = position;
+        document.getElementById('editTradePnl').value = pnl;
+        document.getElementById('editTradeMemo').value = memo;
+        document.getElementById('editTradeSubmitBtn').disabled = false;
+        document.getElementById('editTradeSubmitBtn').textContent = MSG.saveBtn;
+        document.getElementById('editTradeModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setTimeout(function () { document.getElementById('editTradeTicker').focus(); }, 200);
+    }
+    function closeEditTradeModal() {
+        document.getElementById('editTradeModal').classList.remove('active');
+        document.body.style.overflow = '';
+        document.getElementById('editTradeForm').reset();
+    }
+    document.getElementById('editTradeModal').addEventListener('click', function (e) { if (e.target === this) closeEditTradeModal(); });
+
+    var isEditTradeSubmitting = false;
+    function submitEditTrade(e) {
+        e.preventDefault();
+        if (isEditTradeSubmitting) return false;
+        isEditTradeSubmitting = true;
+        var btn = document.getElementById('editTradeSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = MSG.savingBtn;
+
+        var tradeId = document.getElementById('editTradeId').value;
+        var body = {
+            type: document.getElementById('editTradeType').value,
+            ticker: document.getElementById('editTradeTicker').value.trim(),
+            position: document.getElementById('editTradePosition').value,
+            pnl: parseFloat(document.getElementById('editTradePnl').value),
+            memo: document.getElementById('editTradeMemo').value.trim() || null
+        };
+
+        fetch('/api/account/' + accountId + '/trade/' + tradeId, { method: 'PUT', headers: getCsrf(), body: JSON.stringify(body) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (d.success) {
+                closeEditTradeModal();
+                showSuccessAndReload(MSG.updated);
+            } else {
+                showAlert(d.message || MSG.updateFailed);
+                isEditTradeSubmitting = false;
+                btn.disabled = false;
+                btn.textContent = MSG.saveBtn;
+            }
+        }).catch(function () {
+            showAlert(MSG.serverError);
+            isEditTradeSubmitting = false;
+            btn.disabled = false;
+            btn.textContent = MSG.saveBtn;
+        });
+        return false;
+    }
+
+    /* ══ Delete Trade ══ */
+    function deleteTrade(tradeId) {
+        showConfirm({
+            title: MSG.deleteTitle,
+            description: MSG.deleteDesc,
+            icon: 'danger',
+            confirmText: MSG.deleteBtn,
+            confirmClass: 'danger',
+            onConfirm: function () {
+                var csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                var csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+                var headers = {};
+                headers[csrfHeader] = csrfToken;
+                fetch('/api/account/' + accountId + '/trade/' + tradeId, { method: 'DELETE', headers: headers })
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (d.success) {
+                        showSuccessAndReload(MSG.deleted);
                     } else {
-                        window.location.href = '/trading-history';
+                        showAlert(d.message || MSG.deleteFailed);
                     }
-                });
+                }).catch(function () { showAlert(MSG.serverError); });
             }
         });
+    }
+
+    /* ══ Event Delegation for Table Action Buttons ══ */
+    document.addEventListener('click', function (e) {
+        var editBtn = e.target.closest('.th-edit-btn');
+        if (editBtn) {
+            openEditTradeModal(
+                editBtn.dataset.id,
+                editBtn.dataset.type,
+                editBtn.dataset.ticker,
+                editBtn.dataset.position,
+                editBtn.dataset.pnl,
+                editBtn.dataset.memo
+            );
+            return;
+        }
+        var deleteBtn = e.target.closest('.th-delete-btn');
+        if (deleteBtn) {
+            deleteTrade(deleteBtn.dataset.id);
+            return;
+        }
+    });
+
+    /* ══ Client-side Filter ══ */
+    function applyFilters() {
+        var typeFilter = document.getElementById('filterType').value;
+        var posFilter = document.getElementById('filterPosition').value;
+        var rows = document.querySelectorAll('.trade-row');
+        rows.forEach(function (row) {
+            var typeMatch = !typeFilter || row.dataset.type === typeFilter;
+            var posMatch = !posFilter || row.dataset.position === posFilter;
+            row.style.display = (typeMatch && posMatch) ? '' : 'none';
+        });
+    }
+    document.getElementById('filterType').addEventListener('change', applyFilters);
+    document.getElementById('filterPosition').addEventListener('change', applyFilters);
+
+    /* ══ ESC ══ */
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            var editModal = document.getElementById('editTradeModal');
+            var newModal = document.getElementById('newTradeModal');
+            if (editModal && editModal.classList.contains('active')) closeEditTradeModal();
+            else if (newModal && newModal.classList.contains('active')) closeNewTradeModal();
+        }
+    });
+
+    </script>
+
+    <script th:if="${selectedAccount == null}">
+    document.addEventListener('DOMContentLoaded', function () {
+        var sel = document.getElementById('accountSelect');
+        if (sel) {
+            sel.addEventListener('change', function () {
+                if (this.value) {
+                    window.location.href = '/trading-history?accountId=' + this.value;
+                } else {
+                    window.location.href = '/trading-history';
+                }
+            });
+        }
+    });
+    </script>
+
+    <script th:if="${selectedAccount != null}">
+    document.addEventListener('DOMContentLoaded', function () {
+        var sel = document.getElementById('accountSelect');
+        if (sel) {
+            sel.addEventListener('change', function () {
+                if (this.value) {
+                    window.location.href = '/trading-history?accountId=' + this.value;
+                } else {
+                    window.location.href = '/trading-history';
+                }
+            });
+        }
+    });
     </script>
 
 </div>
