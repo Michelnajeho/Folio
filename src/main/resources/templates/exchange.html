@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <link rel="stylesheet" th:href="@{/css/exchange.css}"/>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Header -->
+    <div class="exchange-header">
+        <div class="exchange-header-left">
+            <h1 th:text="#{exchange.title}">Exchange Rate</h1>
+            <p th:text="#{exchange.subtitle}">Check real-time exchange rates and convert currencies.</p>
+        </div>
+        <div class="exchange-header-right">
+            <span class="exchange-live-badge" id="liveBadge">
+                <span class="live-dot"></span>
+                <span th:text="#{exchange.live}">LIVE</span>
+            </span>
+            <span class="exchange-updated" id="lastUpdated">--</span>
+            <button class="exchange-refresh-btn" id="refreshBtn" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Exchange Rate Cards -->
+    <div class="exchange-section">
+        <h2 class="section-title" th:text="#{exchange.rate_table}">Exchange Rates (KRW)</h2>
+        <div class="exchange-rate-grid" id="rateGrid"></div>
+        <div class="exchange-auto-refresh" th:text="#{exchange.auto_refresh}">Auto-refresh every 30s</div>
+    </div>
+
+    <!-- Currency Calculator -->
+    <div class="exchange-section">
+        <h2 class="section-title" th:text="#{exchange.calculator}">Currency Calculator</h2>
+        <div class="calculator-card">
+            <div class="calc-row">
+                <div class="calc-input-group">
+                    <label th:text="#{exchange.from}">From</label>
+                    <div class="calc-field">
+                        <select id="calcFrom" class="calc-select">
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="JPY">JPY</option>
+                            <option value="GBP">GBP</option>
+                            <option value="CNY">CNY</option>
+                            <option value="USDT">USDT</option>
+                            <option value="KRW">KRW</option>
+                        </select>
+                        <input type="number" id="calcAmount" class="calc-input"
+                               value="1" min="0" step="any"/>
+                    </div>
+                </div>
+                <button class="calc-swap-btn" id="calcSwap" type="button" th:title="#{exchange.swap}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2">
+                        <path d="M7 16l-4-4m0 0l4-4m-4 4h18"/>
+                        <path d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
+                </button>
+                <div class="calc-input-group">
+                    <label th:text="#{exchange.to}">To</label>
+                    <div class="calc-field">
+                        <select id="calcTo" class="calc-select">
+                            <option value="KRW" selected>KRW</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="JPY">JPY</option>
+                            <option value="GBP">GBP</option>
+                            <option value="CNY">CNY</option>
+                            <option value="USDT">USDT</option>
+                        </select>
+                        <div class="calc-result" id="calcResult">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        var __lang = /*[[${#locale.language}]]*/ 'ko';
+        var __rates = /*[[${rates}]]*/ [];
+        var __csrf = document.querySelector('meta[name="_csrf"]').content;
+        var __csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        /* ══════════════════════════════════
+           Rate Grid
+        ══════════════════════════════════ */
+        var rateMap = {};
+
+        function buildRateMap(rates) {
+            rateMap = {};
+            for (var i = 0; i < rates.length; i++) {
+                rateMap[rates[i].currencyCode] = rates[i];
+            }
+        }
+
+        function renderRateGrid(rates) {
+            var grid = document.getElementById('rateGrid');
+            if (!grid) return;
+
+            var html = '';
+            for (var i = 0; i < rates.length; i++) {
+                var r = rates[i];
+                var name = __lang === 'ko' ? r.currencyNameKo : r.currencyNameEn;
+                var changeDir = r.change > 0 ? 'positive' : (r.change < 0 ? 'negative' : '');
+                var arrow = r.change > 0 ? '\u25B2' : (r.change < 0 ? '\u25BC' : '');
+                var changeSign = r.change > 0 ? '+' : '';
+                var rateFormatted = r.rate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+                html += '<div class="rate-card">';
+                html += '  <div class="rate-card-header">';
+                html += '    <span class="rate-card-flag">' + r.flag + '</span>';
+                html += '    <div class="rate-card-names">';
+                html += '      <span class="rate-card-code">' + r.currencyCode + '</span>';
+                html += '      <span class="rate-card-name">' + name + '</span>';
+                html += '    </div>';
+                html += '  </div>';
+                html += '  <div class="rate-card-body">';
+                html += '    <div class="rate-card-value">\u20A9 ' + rateFormatted + '</div>';
+                html += '    <div class="rate-card-unit">' + r.unit + '</div>';
+                html += '  </div>';
+                html += '  <div class="rate-card-footer">';
+                if (r.change !== 0) {
+                    html += '    <span class="rate-card-change ' + changeDir + '">';
+                    html += arrow + ' ' + changeSign + r.change.toFixed(2);
+                    html += ' (' + changeSign + r.changePercent.toFixed(2) + '%)';
+                    html += '    </span>';
+                } else {
+                    html += '    <span class="rate-card-change">-</span>';
+                }
+                html += '  </div>';
+                html += '</div>';
+            }
+
+            grid.innerHTML = html;
+        }
+
+        /* ══════════════════════════════════
+           Calculator
+        ══════════════════════════════════ */
+        function calcConvert() {
+            var fromCode = document.getElementById('calcFrom').value;
+            var toCode = document.getElementById('calcTo').value;
+            var amount = parseFloat(document.getElementById('calcAmount').value) || 0;
+            var result = document.getElementById('calcResult');
+
+            if (amount === 0 || fromCode === toCode) {
+                var display = fromCode === toCode ? amount : 0;
+                result.textContent = display.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                return;
+            }
+
+            /* KRW 기준 환산: 모든 통화는 "1단위당 KRW" 형태로 rateMap에 저장
+               JPY만 예외: "100엔당 KRW" → 1엔당 KRW = rate / 100 */
+            var fromKrw = getKrwRate(fromCode);
+            var toKrw = getKrwRate(toCode);
+
+            if (fromKrw === 0 || toKrw === 0) {
+                result.textContent = '--';
+                return;
+            }
+
+            var converted = amount * fromKrw / toKrw;
+            result.textContent = converted.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4});
+        }
+
+        function getKrwRate(code) {
+            if (code === 'KRW') return 1;
+            var info = rateMap[code];
+            if (!info) return 0;
+            /* JPY: rateMap에는 100엔당 KRW가 저장 → 1엔당 KRW로 변환 */
+            if (code === 'JPY') return info.rate / 100;
+            return info.rate;
+        }
+
+        document.getElementById('calcFrom').addEventListener('change', calcConvert);
+        document.getElementById('calcTo').addEventListener('change', calcConvert);
+        document.getElementById('calcAmount').addEventListener('input', calcConvert);
+
+        document.getElementById('calcSwap').addEventListener('click', function () {
+            var fromEl = document.getElementById('calcFrom');
+            var toEl = document.getElementById('calcTo');
+            var tmp = fromEl.value;
+            fromEl.value = toEl.value;
+            toEl.value = tmp;
+            calcConvert();
+        });
+
+        /* ══════════════════════════════════
+           Auto Refresh (30초)
+        ══════════════════════════════════ */
+        function updateTimestamp() {
+            var now = new Date();
+            var h = now.getHours();
+            var m = now.getMinutes();
+            var s = now.getSeconds();
+            var ts = (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+            document.getElementById('lastUpdated').textContent = ts;
+        }
+
+        function fetchRates() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/exchange/rates');
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    try {
+                        var resp = JSON.parse(xhr.responseText);
+                        if (resp.success && resp.data) {
+                            __rates = resp.data;
+                            buildRateMap(__rates);
+                            renderRateGrid(__rates);
+                            calcConvert();
+                            updateTimestamp();
+                        }
+                    } catch (e) { /* ignore parse error */ }
+                }
+            };
+            xhr.send();
+        }
+
+        function manualRefresh() {
+            var btn = document.getElementById('refreshBtn');
+            btn.classList.add('loading');
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/exchange/refresh');
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader(__csrfHeader, __csrf);
+            xhr.onload = function () {
+                btn.classList.remove('loading');
+                if (xhr.status === 200) {
+                    try {
+                        var resp = JSON.parse(xhr.responseText);
+                        if (resp.success && resp.data) {
+                            __rates = resp.data;
+                            buildRateMap(__rates);
+                            renderRateGrid(__rates);
+                            calcConvert();
+                            updateTimestamp();
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+            };
+            xhr.onerror = function () { btn.classList.remove('loading'); };
+            xhr.send();
+        }
+
+        document.getElementById('refreshBtn').addEventListener('click', manualRefresh);
+
+        /* ── 초기 렌더링 ── */
+        buildRateMap(__rates);
+        renderRateGrid(__rates);
+        calcConvert();
+        updateTimestamp();
+
+        /* ── 30초 자동 갱신 ── */
+        setInterval(fetchRates, 30000);
+    </script>
+
+</div>
+</body>
+</html>
