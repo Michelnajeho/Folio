@@ -4,6 +4,7 @@
 CREATE SCHEMA IF NOT EXISTS folio;
 
 -- 기존 테이블 삭제 (FK 의존성 역순)
+DROP TABLE IF EXISTS folio.account_balance_snapshot;
 DROP TABLE IF EXISTS folio.account_transaction;
 DROP TABLE IF EXISTS folio.account;
 DROP TABLE IF EXISTS folio.menu;
@@ -135,3 +136,26 @@ COMMENT ON COLUMN folio.account_transaction.created_at     IS '생성일';
 -- 인덱스
 CREATE INDEX idx_acct_tx_account_id ON folio.account_transaction (account_id);
 CREATE INDEX idx_acct_tx_transacted ON folio.account_transaction (transacted_at);
+
+-- 계좌 잔고 일별 스냅샷 테이블
+CREATE TABLE folio.account_balance_snapshot (
+    id              BIGINT          GENERATED ALWAYS AS IDENTITY PRIMARY KEY,   -- 스냅샷 ID
+    account_id      BIGINT          NOT NULL,                                   -- 계좌 FK
+    balance         NUMERIC(18,4)   NOT NULL,                                   -- 해당 시점 잔고
+    snapshot_date   DATE            NOT NULL,                                   -- 스냅샷 날짜 (UTC 기준)
+    created_at      TIMESTAMPTZ     NOT NULL DEFAULT NOW(),                     -- 생성일
+
+    CONSTRAINT fk_balance_snap_account FOREIGN KEY (account_id) REFERENCES folio.account (id) ON DELETE CASCADE,
+    CONSTRAINT uq_balance_snap_account_date UNIQUE (account_id, snapshot_date)
+);
+
+COMMENT ON TABLE  folio.account_balance_snapshot                    IS '계좌 잔고 일별 스냅샷 (UTC 기준)';
+COMMENT ON COLUMN folio.account_balance_snapshot.id                 IS '스냅샷 ID';
+COMMENT ON COLUMN folio.account_balance_snapshot.account_id         IS '계좌 FK';
+COMMENT ON COLUMN folio.account_balance_snapshot.balance            IS '해당 시점 잔고';
+COMMENT ON COLUMN folio.account_balance_snapshot.snapshot_date      IS '스냅샷 날짜 (UTC 기준)';
+COMMENT ON COLUMN folio.account_balance_snapshot.created_at         IS '생성일';
+
+-- 인덱스
+CREATE INDEX idx_balance_snap_account_id   ON folio.account_balance_snapshot (account_id);
+CREATE INDEX idx_balance_snap_date         ON folio.account_balance_snapshot (snapshot_date);

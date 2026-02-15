@@ -74,4 +74,25 @@ public class AccountTransactionApiController {
             return ApiResponse.error(e.getMessage());
         }
     }
+
+    @DeleteMapping("/{transactionId}")
+    public ApiResponse<?> deleteTransaction(
+            @PathVariable Long accountId,
+            @PathVariable Long transactionId,
+            Principal principal) {
+
+        Member member = memberMapper.findByLoginId(principal.getName());
+
+        try {
+            transactionService.deleteTransaction(transactionId, member.getId());
+
+            Account updated = accountMapper.findById(accountId);
+
+            return ApiResponse.ok(Map.of(
+                    "balance", updated.getBalance()
+            ));
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
 }

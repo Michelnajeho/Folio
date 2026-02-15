@@ -21,4 +21,6 @@ public interface AccountTransactionMapper {
     AccountTransaction findById(@Param("id") Long id);
 
     void update(AccountTransaction transaction);
+
+    void deleteById(@Param("id") Long id);
 }

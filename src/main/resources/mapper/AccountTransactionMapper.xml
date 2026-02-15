@@ -46,4 +46,9 @@
          WHERE id = #{id}
     </update>
 
+    <delete id="deleteById">
+        DELETE FROM folio.account_transaction
+         WHERE id = #{id}
+    </delete>
+
 </mapper>

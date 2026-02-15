@@ -20,6 +20,7 @@ public class AccountTransactionService {
 
     private final AccountTransactionMapper transactionMapper;
     private final AccountMapper accountMapper;
+    private final BalanceSnapshotService balanceSnapshotService;
 
     /**
      * 입출금 처리
@@ -59,6 +60,10 @@ public class AccountTransactionService {
                 ? request.getAmount()
                 : request.getAmount().negate();
         accountMapper.updateBalance(accountId, balanceChange);
+
+        /* 잔고 스냅샷 기록 */
+        Account updated = accountMapper.findById(accountId);
+        balanceSnapshotService.recordSnapshot(accountId, updated.getBalance());
 
         return tx;
     }
@@ -132,6 +137,10 @@ public class AccountTransactionService {
                 : request.getAmount().negate();
         accountMapper.updateBalance(old.getAccountId(), apply);
 
+        /* 잔고 스냅샷 기록 */
+        Account afterUpdate = accountMapper.findById(old.getAccountId());
+        balanceSnapshotService.recordSnapshot(old.getAccountId(), afterUpdate.getBalance());
+
         /* 4) 트랜잭션 레코드 업데이트 */
         old.setType(newType);
         old.setAmount(request.getAmount());
@@ -139,5 +148,41 @@ public class AccountTransactionService {
         transactionMapper.update(old);
 
         return old;
+    }
+
+    /**
+     * 트랜잭션 삭제
+     * 해당 거래의 잔고 영향을 되돌린 뒤 레코드 삭제
+     */
+    @Transactional
+    public void deleteTransaction(Long transactionId, Long memberId) {
+        AccountTransaction tx = transactionMapper.findById(transactionId);
+        if (tx == null) {
+            throw new IllegalArgumentException("거래 내역을 찾을 수 없습니다.");
+        }
+
+        Account account = accountMapper.findById(tx.getAccountId());
+        if (account == null || !account.getMemberId().equals(memberId)) {
+            throw new IllegalArgumentException("계좌를 찾을 수 없습니다.");
+        }
+
+        /* 입금 내역 삭제 시 잔고 부족 검증 */
+        if ("DEPOSIT".equals(tx.getType()) && account.getBalance().compareTo(tx.getAmount()) < 0) {
+            throw new IllegalArgumentException(
+                    "이 입금 내역을 삭제하면 잔고가 부족해집니다. 출금 내역을 먼저 삭제해주세요.");
+        }
+
+        /* 잔고 되돌림: DEPOSIT이었으면 차감, WITHDRAWAL이었으면 복원 */
+        BigDecimal revert = "DEPOSIT".equals(tx.getType())
+                ? tx.getAmount().negate()
+                : tx.getAmount();
+        accountMapper.updateBalance(tx.getAccountId(), revert);
+
+        /* 잔고 스냅샷 기록 */
+        Account updated = accountMapper.findById(tx.getAccountId());
+        balanceSnapshotService.recordSnapshot(tx.getAccountId(), updated.getBalance());
+
+        /* 레코드 삭제 */
+        transactionMapper.deleteById(transactionId);
     }
 }

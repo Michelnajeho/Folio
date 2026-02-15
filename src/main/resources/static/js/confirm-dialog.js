@@ -89,8 +89,9 @@
 
         /* Action 버튼 */
         document.getElementById('confirmActionBtn').addEventListener('click', function () {
+            var cb = currentCallback;
             closeConfirm();
-            if (currentCallback) currentCallback();
+            if (cb) cb();
         });
 
         /* Overlay 클릭 */

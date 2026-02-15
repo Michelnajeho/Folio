@@ -7,13 +7,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title layout:title-pattern="$CONTENT_TITLE - Folio">Folio</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}"/>
+    <title>Folio</title>
     <link rel="stylesheet" as="style" crossorigin
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
     <link rel="stylesheet" th:href="@{/css/common.css}"/>
     <link rel="stylesheet" th:href="@{/css/confirm-dialog.css}"/>
+    <link rel="stylesheet" th:href="@{/css/alert-modal.css}"/>
     <script th:src="@{/js/theme.js}"></script>
     <script th:src="@{/js/confirm-dialog.js}"></script>
+    <script th:src="@{/js/alert-modal.js}"></script>
 </head>
 <body>
 

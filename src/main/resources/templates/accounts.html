@@ -3,7 +3,6 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/default}">
 <head>
-    <title>Accounts</title>
     <link rel="stylesheet" th:href="@{/css/accounts.css}"/>
 </head>
 <body>
@@ -132,21 +131,6 @@
                     <button class="acc-modal-btn submit" type="submit" id="submitBtn">Create Account</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Success Feedback Modal -->
-    <div class="acc-modal-overlay" id="successModal">
-        <div class="acc-modal acc-success-modal">
-            <div class="acc-success-body">
-                <div class="acc-success-icon">
-                    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="8 12 11 15 16 9"/>
-                    </svg>
-                </div>
-                <p class="acc-success-message" id="successMessage">완료되었습니다.</p>
-            </div>
         </div>
     </div>
 
@@ -294,18 +278,18 @@
         .then(function (data) {
             if (data.success) {
                 closeAddModal();
-                showSuccessModal('계좌가 생성되었습니다.', function () {
+                showSuccessAndReload('계좌가 생성되었습니다.', function () {
                     window.location.reload();
                 });
             } else {
-                alert(data.message || '계좌 등록에 실패했습니다.');
+                showAlert(data.message || '계좌 등록에 실패했습니다.');
                 isCreateSubmitting = false;
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Create Account';
             }
         })
         .catch(function () {
-            alert('서버 오류가 발생했습니다.');
+            showAlert('서버 오류가 발생했습니다.');
             isCreateSubmitting = false;
             submitBtn.disabled = false;
             submitBtn.textContent = 'Create Account';
@@ -315,20 +299,14 @@
     }
 
     /* ══════════════════════════════════
-       Success Feedback Modal
+       Success Helper
     ══════════════════════════════════ */
     var isReloading = false;
 
-    function showSuccessModal(message, callback) {
-        var modal = document.getElementById('successModal');
-        document.getElementById('successMessage').textContent = message;
-        modal.classList.add('active');
+    function showSuccessAndReload(message, callback) {
+        showAlert({ type: 'success', message: message, duration: 1200 });
         setTimeout(function () {
-            modal.classList.remove('active');
-            if (callback && !isReloading) {
-                isReloading = true;
-                callback();
-            }
+            if (callback && !isReloading) { isReloading = true; callback(); }
         }, 1200);
     }
 
@@ -401,18 +379,18 @@
             if (data.success) {
                 var msg = type === 'DEPOSIT' ? '입금이 완료되었습니다.' : '출금이 완료되었습니다.';
                 closeTxModal();
-                showSuccessModal(msg, function () {
+                showSuccessAndReload(msg, function () {
                     window.location.reload();
                 });
             } else {
-                alert(data.message || '처리에 실패했습니다.');
+                showAlert(data.message || '처리에 실패했습니다.');
                 isTxSubmitting = false;
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Confirm';
             }
         })
         .catch(function () {
-            alert('서버 오류가 발생했습니다.');
+            showAlert('서버 오류가 발생했습니다.');
             isTxSubmitting = false;
             submitBtn.disabled = false;
             submitBtn.textContent = 'Confirm';

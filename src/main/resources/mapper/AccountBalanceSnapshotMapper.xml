@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trade.folio.domain.account.mapper.AccountBalanceSnapshotMapper">
+
+    <insert id="upsert">
+        INSERT INTO folio.account_balance_snapshot (account_id, balance, snapshot_date)
+        VALUES (#{accountId}, #{balance}, (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::DATE)
+        ON CONFLICT (account_id, snapshot_date)
+        DO UPDATE SET balance = EXCLUDED.balance
+    </insert>
+
+    <select id="findLatestBefore" resultType="com.trade.folio.domain.account.entity.AccountBalanceSnapshot">
+        SELECT id, account_id, balance, snapshot_date, created_at
+          FROM folio.account_balance_snapshot
+         WHERE account_id = #{accountId}
+           AND snapshot_date &lt; #{date}
+         ORDER BY snapshot_date DESC
+         LIMIT 1
+    </select>
+
+    <select id="findByAccountIdAndDate" resultType="com.trade.folio.domain.account.entity.AccountBalanceSnapshot">
+        SELECT id, account_id, balance, snapshot_date, created_at
+          FROM folio.account_balance_snapshot
+         WHERE account_id = #{accountId}
+           AND snapshot_date = #{date}
+    </select>
+
+</mapper>

@@ -3,7 +3,6 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/default}">
 <head>
-    <title th:text="${account.accountName + ' - Accounts'}">Account Detail</title>
     <link rel="stylesheet" th:href="@{/css/account-detail.css}"/>
 </head>
 <body>
@@ -97,8 +96,15 @@
                     <td class="acd-memo" th:text="${tx.memo != null ? tx.memo : '-'}">-</td>
                     <td class="acd-td-action">
                         <button class="acd-edit-btn" type="button"
-                                th:attr="onclick='openTxEditModal(' + ${tx.id} + ', \'' + ${tx.type} + '\', ' + ${tx.amount} + ', \'' + (${tx.memo} != null ? ${tx.memo} : '') + '\')'">
+                                th:data-id="${tx.id}"
+                                th:data-type="${tx.type}"
+                                th:data-amount="${tx.amount}"
+                                th:data-memo="${tx.memo != null ? tx.memo : ''}">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button class="acd-delete-btn" type="button"
+                                th:data-id="${tx.id}">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                         </button>
                     </td>
                 </tr>
@@ -233,30 +239,13 @@
         </div>
     </div>
 
-    <!-- Success Feedback Modal -->
-    <div class="acc-modal-overlay" id="successModal">
-        <div class="acc-modal acc-success-modal">
-            <div class="acc-success-body">
-                <div class="acc-success-icon">
-                    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/>
-                    </svg>
-                </div>
-                <p class="acc-success-message" id="successMessage">완료되었습니다.</p>
-            </div>
-        </div>
-    </div>
-
     <script th:inline="javascript">
     var accountId = /*[[${account.id}]]*/ 0;
 
     var isReloading = false;
-    function showSuccessModal(message, callback) {
-        var modal = document.getElementById('successModal');
-        document.getElementById('successMessage').textContent = message;
-        modal.classList.add('active');
+    function showSuccessAndReload(message, callback) {
+        showAlert({ type: 'success', message: message, duration: 1200 });
         setTimeout(function () {
-            modal.classList.remove('active');
             if (callback && !isReloading) { isReloading = true; callback(); }
         }, 1200);
     }
@@ -309,9 +298,9 @@
         fetch('/api/account/' + accountId, { method: 'PUT', headers: headers, body: JSON.stringify(body) })
         .then(function (r) { return r.json(); })
         .then(function (d) {
-            if (d.success) { closeEditModal(); showSuccessModal('계좌 정보가 수정되었습니다.', function () { window.location.reload(); }); }
-            else { alert(d.message || '계좌 수정에 실패했습니다.'); isEditSubmitting = false; btn.disabled = false; btn.textContent = 'Save Changes'; }
-        }).catch(function () { alert('서버 오류가 발생했습니다.'); isEditSubmitting = false; btn.disabled = false; btn.textContent = 'Save Changes'; });
+            if (d.success) { closeEditModal(); showSuccessAndReload('계좌 정보가 수정되었습니다.', function () { window.location.reload(); }); }
+            else { showAlert(d.message || '계좌 수정에 실패했습니다.'); isEditSubmitting = false; btn.disabled = false; btn.textContent = 'Save Changes'; }
+        }).catch(function () { showAlert('서버 오류가 발생했습니다.'); isEditSubmitting = false; btn.disabled = false; btn.textContent = 'Save Changes'; });
         return false;
     }
 
@@ -324,8 +313,8 @@
                 var headers = {}; headers[csrfHeader] = csrfToken;
                 fetch('/api/account/' + accountId, { method: 'DELETE', headers: headers })
                 .then(function (r) { return r.json(); })
-                .then(function (d) { if (d.success) { showSuccessModal('계좌가 삭제되었습니다.', function () { window.location.href = '/accounts'; }); } else { alert(d.message || '계좌 삭제에 실패했습니다.'); } })
-                .catch(function () { alert('서버 오류가 발생했습니다.'); });
+                .then(function (d) { if (d.success) { showSuccessAndReload('계좌가 삭제되었습니다.', function () { window.location.href = '/accounts'; }); } else { showAlert(d.message || '계좌 삭제에 실패했습니다.'); } })
+                .catch(function () { showAlert('서버 오류가 발생했습니다.'); });
             }
         });
     }
@@ -358,9 +347,9 @@
         fetch('/api/account/' + accountId + '/transaction', { method: 'POST', headers: headers, body: JSON.stringify(body) })
         .then(function (r) { return r.json(); })
         .then(function (d) {
-            if (d.success) { var msg = type === 'DEPOSIT' ? '입금이 완료되었습니다.' : '출금이 완료되었습니다.'; closeTxModal(); showSuccessModal(msg, function () { window.location.reload(); }); }
-            else { alert(d.message || '처리에 실패했습니다.'); isTxSubmitting = false; btn.disabled = false; btn.textContent = 'Confirm'; }
-        }).catch(function () { alert('서버 오류가 발생했습니다.'); isTxSubmitting = false; btn.disabled = false; btn.textContent = 'Confirm'; });
+            if (d.success) { var msg = type === 'DEPOSIT' ? '입금이 완료되었습니다.' : '출금이 완료되었습니다.'; closeTxModal(); showSuccessAndReload(msg, function () { window.location.reload(); }); }
+            else { showAlert(d.message || '처리에 실패했습니다.'); isTxSubmitting = false; btn.disabled = false; btn.textContent = 'Confirm'; }
+        }).catch(function () { showAlert('서버 오류가 발생했습니다.'); isTxSubmitting = false; btn.disabled = false; btn.textContent = 'Confirm'; });
         return false;
     }
 
@@ -393,11 +382,40 @@
         fetch('/api/account/' + accountId + '/transaction/' + txId, { method: 'PUT', headers: headers, body: JSON.stringify(body) })
         .then(function (r) { return r.json(); })
         .then(function (d) {
-            if (d.success) { closeTxEditModal(); showSuccessModal('거래 내역이 수정되었습니다.', function () { window.location.reload(); }); }
-            else { alert(d.message || '수정에 실패했습니다.'); isTxEditSubmitting = false; btn.disabled = false; btn.textContent = 'Save Changes'; }
-        }).catch(function () { alert('서버 오류가 발생했습니다.'); isTxEditSubmitting = false; btn.disabled = false; btn.textContent = 'Save Changes'; });
+            if (d.success) { closeTxEditModal(); showSuccessAndReload('거래 내역이 수정되었습니다.', function () { window.location.reload(); }); }
+            else { showAlert(d.message || '수정에 실패했습니다.'); isTxEditSubmitting = false; btn.disabled = false; btn.textContent = 'Save Changes'; }
+        }).catch(function () { showAlert('서버 오류가 발생했습니다.'); isTxEditSubmitting = false; btn.disabled = false; btn.textContent = 'Save Changes'; });
         return false;
     }
+
+    /* ══ Delete Transaction ══ */
+    function deleteTx(txId) {
+        showConfirm({ title: '거래 내역을 삭제하시겠습니까?', description: '삭제된 거래는 잔고에서 되돌려지며 복구할 수 없습니다.', icon: 'danger', confirmText: 'Delete', confirmClass: 'danger',
+            onConfirm: function () {
+                var csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                var csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+                var headers = {}; headers[csrfHeader] = csrfToken;
+                fetch('/api/account/' + accountId + '/transaction/' + txId, { method: 'DELETE', headers: headers })
+                .then(function (r) { return r.json(); })
+                .then(function (d) { if (d.success) { showSuccessAndReload('거래 내역이 삭제되었습니다.', function () { window.location.reload(); }); } else { showAlert(d.message || '삭제에 실패했습니다.'); } })
+                .catch(function () { showAlert('서버 오류가 발생했습니다.'); });
+            }
+        });
+    }
+
+    /* ══ Event Delegation for Table Action Buttons ══ */
+    document.addEventListener('click', function (e) {
+        var editBtn = e.target.closest('.acd-edit-btn');
+        if (editBtn) {
+            openTxEditModal(editBtn.dataset.id, editBtn.dataset.type, editBtn.dataset.amount, editBtn.dataset.memo);
+            return;
+        }
+        var deleteBtn = e.target.closest('.acd-delete-btn');
+        if (deleteBtn) {
+            deleteTx(deleteBtn.dataset.id);
+            return;
+        }
+    });
 
     /* ── ESC ── */
     document.addEventListener('keydown', function (e) {
