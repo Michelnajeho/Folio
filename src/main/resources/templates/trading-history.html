@@ -35,6 +35,44 @@
         </div>
     </div>
 
+    <!-- Stat Cards: when account selected -->
+    <div class="th-stat-grid" th:if="${selectedAccount != null}">
+        <!-- Row 1 -->
+        <div class="th-stat-card">
+            <div class="th-stat-label">Total Trades</div>
+            <div class="th-stat-value">47</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-label">Win Rate</div>
+            <div class="th-stat-value positive">63.8%</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-label">Profit Factor</div>
+            <div class="th-stat-value positive">1.82</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-label">Avg P&amp;L</div>
+            <div class="th-stat-value positive">+$128.40</div>
+        </div>
+        <!-- Row 2 -->
+        <div class="th-stat-card">
+            <div class="th-stat-label">Best Trade</div>
+            <div class="th-stat-value positive">+$2,890</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-label">Worst Trade</div>
+            <div class="th-stat-value negative">-$680</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-label">Streak</div>
+            <div class="th-stat-value positive">W3</div>
+        </div>
+        <div class="th-stat-card">
+            <div class="th-stat-label">This Month P&amp;L</div>
+            <div class="th-stat-value positive">+$3,420</div>
+        </div>
+    </div>
+
     <!-- When account selected -->
     <th:block th:if="${selectedAccount != null}">
         <!-- Toolbar -->

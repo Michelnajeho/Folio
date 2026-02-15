@@ -68,6 +68,49 @@
     color: #f0a8a8;
 }
 
+/* ── Stat Cards ── */
+.th-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.th-stat-card {
+    padding: 1.4rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: border-color 0.2s, background 0.3s;
+}
+
+.th-stat-card:hover {
+    border-color: var(--border-hover);
+}
+
+.th-stat-label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+}
+
+.th-stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.th-stat-value.positive {
+    color: #4ade80;
+}
+
+.th-stat-value.negative {
+    color: #f87171;
+}
+
 /* ── Toolbar ── */
 .th-toolbar {
     display: flex;
@@ -311,6 +354,9 @@
         align-items: flex-start;
         width: 100%;
     }
+    .th-stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
     .th-toolbar {
         flex-direction: column;
         align-items: stretch;
@@ -327,5 +373,8 @@
 @media (max-width: 480px) {
     .th-header h1 {
         font-size: 1.3rem;
+    }
+    .th-stat-grid {
+        grid-template-columns: 1fr;
     }
 }
