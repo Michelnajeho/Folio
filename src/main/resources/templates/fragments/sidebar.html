@@ -3,30 +3,47 @@
 <body>
 <nav class="sidebar" th:fragment="sidebar">
     <ul class="sidebar-menu">
-        <li>
-            <a th:href="@{/dashboard}" th:classappend="${menu == 'dashboard'} ? 'active'">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                <span>Dashboard</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/portfolio}" th:classappend="${menu == 'portfolio'} ? 'active'">
-                <svg viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
-                <span>Portfolio</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/history}" th:classappend="${menu == 'history'} ? 'active'">
-                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                <span>Trade History</span>
-            </a>
-        </li>
-        <li>
-            <a th:href="@{/settings}" th:classappend="${menu == 'settings'} ? 'active'">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-                <span>Settings</span>
-            </a>
-        </li>
+        <th:block th:each="item : ${menus}">
+            <!-- 1뎁스: URL이 있으면 링크, 없으면 그룹 헤더 -->
+            <li th:if="${item.menuUrl != null}">
+                <a th:href="@{${item.menuUrl}}" th:classappend="${menu == item.menuCode} ? 'active'">
+                    <span th:utext="${item.icon}"></span>
+                    <span th:text="${item.menuName}"></span>
+                </a>
+            </li>
+            <li th:if="${item.menuUrl == null}" class="sidebar-group">
+                <span class="sidebar-group-label">
+                    <span th:utext="${item.icon}"></span>
+                    <span th:text="${item.menuName}"></span>
+                </span>
+                <!-- 2뎁스 -->
+                <ul class="sidebar-submenu" th:if="${!item.children.isEmpty()}">
+                    <th:block th:each="child : ${item.children}">
+                        <li th:if="${child.menuUrl != null}">
+                            <a th:href="@{${child.menuUrl}}" th:classappend="${menu == child.menuCode} ? 'active'">
+                                <span th:utext="${child.icon}"></span>
+                                <span th:text="${child.menuName}"></span>
+                            </a>
+                        </li>
+                        <li th:if="${child.menuUrl == null}" class="sidebar-group">
+                            <span class="sidebar-group-label">
+                                <span th:utext="${child.icon}"></span>
+                                <span th:text="${child.menuName}"></span>
+                            </span>
+                            <!-- 3뎁스 -->
+                            <ul class="sidebar-submenu" th:if="${!child.children.isEmpty()}">
+                                <li th:each="grandchild : ${child.children}">
+                                    <a th:href="@{${grandchild.menuUrl}}" th:classappend="${menu == grandchild.menuCode} ? 'active'">
+                                        <span th:utext="${grandchild.icon}"></span>
+                                        <span th:text="${grandchild.menuName}"></span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </th:block>
+                </ul>
+            </li>
+        </th:block>
     </ul>
 
     <div class="sidebar-bottom">

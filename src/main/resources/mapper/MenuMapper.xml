@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.trade.folio.domain.menu.mapper.MenuMapper">
+
+    <select id="findAllVisible" resultType="com.trade.folio.domain.menu.entity.Menu">
+        SELECT id, parent_id, menu_name, menu_code, menu_url, icon, depth, sort_order, visible, created_at, updated_at
+          FROM folio.menu
+         WHERE visible = TRUE
+         ORDER BY depth, sort_order
+    </select>
+
+</mapper>
