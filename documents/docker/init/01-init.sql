@@ -1,24 +1,29 @@
 -- Folio DB 초기화
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 스키마 생성
 CREATE SCHEMA IF NOT EXISTS folio;
 
+-- 기존 테이블 삭제 (FK 의존성 역순)
+DROP TABLE IF EXISTS folio.account_transaction;
+DROP TABLE IF EXISTS folio.account;
+DROP TABLE IF EXISTS folio.menu;
+DROP TABLE IF EXISTS folio.member;
+
 -- 사용자 테이블
 CREATE TABLE folio.member (
-    id          UUID         DEFAULT uuid_generate_v4() PRIMARY KEY,   -- 고유 식별자
-    login_id    VARCHAR(50)  NOT NULL UNIQUE,                          -- 로그인 ID
-    password    VARCHAR(255) NOT NULL,                                 -- 비밀번호 (BCrypt 해시)
-    nickname    VARCHAR(30)  NOT NULL,                                 -- 닉네임
-    email       VARCHAR(100) NOT NULL UNIQUE,                          -- 이메일
-    role        VARCHAR(20)  NOT NULL DEFAULT 'USER',                  -- 권한 (USER / ADMIN)
-    status      VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',                -- 상태 (ACTIVE / INACTIVE / SUSPENDED)
-    updated_at  TIMESTAMPTZ  DEFAULT NULL,                             -- 수정일 (최초 NULL, 수정 시 갱신)
-    created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()                    -- 가입일
+    id          BIGINT       GENERATED ALWAYS AS IDENTITY PRIMARY KEY,  -- 고유 식별자
+    login_id    VARCHAR(50)  NOT NULL UNIQUE,                           -- 로그인 ID
+    password    VARCHAR(255) NOT NULL,                                  -- 비밀번호 (BCrypt 해시)
+    nickname    VARCHAR(30)  NOT NULL,                                  -- 닉네임
+    email       VARCHAR(100) NOT NULL UNIQUE,                           -- 이메일
+    role        VARCHAR(20)  NOT NULL DEFAULT 'USER',                   -- 권한 (USER / ADMIN)
+    status      VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',                 -- 상태 (ACTIVE / INACTIVE / SUSPENDED)
+    updated_at  TIMESTAMPTZ  DEFAULT NULL,                              -- 수정일 (최초 NULL, 수정 시 갱신)
+    created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()                     -- 가입일
 );
 
 COMMENT ON TABLE  folio.member              IS '회원 정보';
-COMMENT ON COLUMN folio.member.id           IS '고유 식별자 (UUID)';
+COMMENT ON COLUMN folio.member.id           IS '고유 식별자';
 COMMENT ON COLUMN folio.member.login_id     IS '로그인 ID';
 COMMENT ON COLUMN folio.member.password     IS '비밀번호 (BCrypt 해시)';
 COMMENT ON COLUMN folio.member.nickname     IS '닉네임';
@@ -79,11 +84,11 @@ INSERT INTO folio.menu (parent_id, menu_name, menu_code, menu_url, icon, depth, 
 -- 계좌 테이블
 CREATE TABLE folio.account (
     id              BIGINT          GENERATED ALWAYS AS IDENTITY PRIMARY KEY,   -- 계좌 ID
-    member_id       UUID            NOT NULL,                                   -- 소유자 (member FK)
+    member_id       BIGINT          NOT NULL,                                   -- 소유자 (member FK)
     account_name    VARCHAR(100)    NOT NULL,                                   -- 계좌명 (예: "바이낸스 선물")
     broker          VARCHAR(50)     DEFAULT NULL,                               -- 브로커명 (선택)
     currency        VARCHAR(10)     NOT NULL DEFAULT 'USD',                     -- 통화 (KRW, USD, USDT 등)
-    initial_balance NUMERIC(18,4)   NOT NULL DEFAULT 0,                         -- 초기 자본금
+    balance         NUMERIC(18,4)   NOT NULL DEFAULT 0,                         -- 잔고 (입출금으로 관리)
     updated_at      TIMESTAMPTZ     DEFAULT NULL,                               -- 수정일
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT NOW(),                     -- 생성일
 
@@ -92,11 +97,11 @@ CREATE TABLE folio.account (
 
 COMMENT ON TABLE  folio.account                  IS '계좌 정보';
 COMMENT ON COLUMN folio.account.id               IS '계좌 ID';
-COMMENT ON COLUMN folio.account.member_id        IS '소유자 (member FK)';
+COMMENT ON COLUMN folio.account.member_id        IS '소유자 (member FK, BIGINT)';
 COMMENT ON COLUMN folio.account.account_name     IS '계좌명';
 COMMENT ON COLUMN folio.account.broker           IS '브로커명';
 COMMENT ON COLUMN folio.account.currency         IS '통화 (KRW, USD, USDT 등)';
-COMMENT ON COLUMN folio.account.initial_balance  IS '초기 자본금';
+COMMENT ON COLUMN folio.account.balance          IS '잔고 (입출금으로 관리)';
 COMMENT ON COLUMN folio.account.updated_at       IS '수정일';
 COMMENT ON COLUMN folio.account.created_at       IS '생성일';
 
