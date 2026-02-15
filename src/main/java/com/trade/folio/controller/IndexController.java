@@ -1,4 +1,4 @@
-package com.trade.folio.common.controller;
+package com.trade.folio.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
