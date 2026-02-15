@@ -148,16 +148,14 @@
             var cellGap = 3;
             var colWidth = cellSize + cellGap;
 
-            /* ── 히트맵 레벨 계산: 거래 건수 기반 ── */
+            /* ── 히트맵 레벨 계산: 수익 → 초록(+), 손실 → 빨강(-) ── */
             function getLevel(dateKey) {
                 var data = tradeDataMap[dateKey];
-                if (!data) return 0;
+                if (!data || data.trades === 0) return 0;
                 var count = data.trades;
-                if (count >= 5) return 4;
-                if (count >= 3) return 3;
-                if (count >= 2) return 2;
-                if (count >= 1) return 1;
-                return 0;
+                var intensity = count >= 5 ? 4 : count >= 3 ? 3 : count >= 2 ? 2 : 1;
+                /* 손실이면 음수 레벨 반환 → CSS에서 빨간색으로 표시 */
+                return data.pnl >= 0 ? intensity : -intensity;
             }
 
             function toDateKey(d) {

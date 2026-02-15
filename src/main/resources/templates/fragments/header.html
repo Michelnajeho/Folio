@@ -6,7 +6,10 @@
         <button class="menu-toggle" onclick="toggleSidebar()">
             <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-        <a href="/dashboard" class="header-logo">FOLIO</a>
+        <a href="/dashboard" class="header-logo" id="headerLogo">
+            <canvas class="pixel-canvas" id="pixelCanvas"></canvas>
+            <span class="header-logo-text">FOLIO</span>
+        </a>
     </div>
     <div class="header-right">
         <span class="header-user" th:text="${#authentication.name}">Guest</span>
@@ -29,6 +32,126 @@
                 var url = new URL(window.location.href);
                 url.searchParams.set('lang', sel.value);
                 window.location.href = url.toString();
+            });
+        })();
+
+        /* ── Pixel Canvas Effect ── */
+        (function () {
+            var canvas = document.getElementById('pixelCanvas');
+            var logo = document.getElementById('headerLogo');
+            if (!canvas || !logo) return;
+
+            var ctx = canvas.getContext('2d');
+            var dpr = window.devicePixelRatio || 1;
+            var pixels = [];
+            var animId = null;
+            var isHovering = false;
+            var gap = 7;
+            var pixelSize = 2;
+            var padX = 12, padY = 8;
+
+            function resize() {
+                var rect = logo.getBoundingClientRect();
+                var w = rect.width + padX * 2;
+                var h = rect.height + padY * 2;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+
+            function initPixels() {
+                pixels = [];
+                var w = canvas.width / dpr;
+                var h = canvas.height / dpr;
+                var cx = w / 2;
+                var cy = h / 2;
+                var maxDist = Math.sqrt(cx * cx + cy * cy);
+                for (var x = 0; x < w; x += gap) {
+                    for (var y = 0; y < h; y += gap) {
+                        var dx = x - cx, dy = y - cy;
+                        var dist = Math.sqrt(dx * dx + dy * dy) / maxDist;
+                        pixels.push({
+                            x: x, y: y,
+                            dist: dist,
+                            alpha: 0,
+                            targetAlpha: 0,
+                            delay: Math.random() * 400 + dist * 300,
+                            phase: Math.random() * Math.PI * 2
+                        });
+                    }
+                }
+            }
+
+            var startTime = 0;
+
+            function animate(timestamp) {
+                if (!startTime) startTime = timestamp;
+                var elapsed = timestamp - startTime;
+
+                var w = canvas.width / dpr;
+                var h = canvas.height / dpr;
+                ctx.clearRect(0, 0, w, h);
+
+                var allDone = true;
+                for (var i = 0; i < pixels.length; i++) {
+                    var p = pixels[i];
+
+                    if (isHovering) {
+                        if (elapsed > p.delay) {
+                            var fade = 1 - p.dist * 0.7;
+                            var wave = Math.sin((elapsed - p.delay) * 0.004 + p.phase);
+                            p.targetAlpha = Math.max(0, fade * (0.5 + wave * 0.5));
+                        }
+                    } else {
+                        p.targetAlpha = 0;
+                    }
+
+                    p.alpha += (p.targetAlpha - p.alpha) * 0.04;
+
+                    if (Math.abs(p.alpha - p.targetAlpha) > 0.005) allDone = false;
+
+                    if (p.alpha > 0.01) {
+                        allDone = false;
+                        /* 중심: 밝은 sky, 가장자리: 연한 sky */
+                        var brightness = 1 - p.dist;
+                        var r = Math.round(14 + (224 - 14) * p.dist);
+                        var g = Math.round(165 + (242 - 165) * p.dist);
+                        var b = Math.round(233 + (254 - 233) * p.dist);
+                        ctx.globalAlpha = p.alpha;
+                        ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+                        ctx.fillRect(p.x, p.y, pixelSize, pixelSize);
+                    }
+                }
+
+                ctx.globalAlpha = 1;
+
+                if (!allDone || isHovering) {
+                    animId = requestAnimationFrame(animate);
+                } else {
+                    animId = null;
+                    startTime = 0;
+                }
+            }
+
+            function startAnim() {
+                isHovering = true;
+                startTime = 0;
+                if (!animId) animId = requestAnimationFrame(animate);
+            }
+
+            function stopAnim() {
+                isHovering = false;
+            }
+
+            resize();
+            initPixels();
+
+            logo.addEventListener('mouseenter', startAnim);
+            logo.addEventListener('mouseleave', stopAnim);
+
+            window.addEventListener('resize', function () {
+                resize();
+                initPixels();
             });
         })();
     </script>

@@ -204,9 +204,9 @@
                 <div class="acc-form-group">
                     <label for="newTradeType" th:text="#{trading.modal.type} + ' *'">Type *</label>
                     <select id="newTradeType" name="type" required>
+                        <option value="FUTURES" th:text="#{trading.futures}">Futures</option>
                         <option value="STOCK" th:text="#{trading.stock}">Stock</option>
                         <option value="CRYPTO" th:text="#{trading.crypto}">Crypto</option>
-                        <option value="FUTURES" th:text="#{trading.futures}">Futures</option>
                     </select>
                 </div>
                 <div class="acc-form-group">
