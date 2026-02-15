@@ -32,10 +32,138 @@
         </div>
     </div>
 
+    <!-- Activity Calendar -->
+    <div class="activity-section">
+        <h2 class="section-title">Activity</h2>
+        <div class="activity-card">
+            <div class="activity-calendar" id="activityCalendar"></div>
+            <div class="activity-legend">
+                <span class="activity-legend-label">Less</span>
+                <span class="activity-legend-cell" data-level="0"></span>
+                <span class="activity-legend-cell" data-level="1"></span>
+                <span class="activity-legend-cell" data-level="2"></span>
+                <span class="activity-legend-cell" data-level="3"></span>
+                <span class="activity-legend-cell" data-level="4"></span>
+                <span class="activity-legend-label">More</span>
+            </div>
+        </div>
+    </div>
+
     <h2 class="section-title">Recent Trades</h2>
     <div class="empty-state">
         <p>아직 기록된 거래가 없습니다.</p>
     </div>
+
+    <script>
+        (function () {
+            var calendar = document.getElementById('activityCalendar');
+            if (!calendar) return;
+
+            var DAY_MS = 86400000;
+            var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            var todayTs = today.getTime();
+
+            /* ── 시작 날짜: 약 52주 전, 일요일로 정렬 ── */
+            var start = new Date(todayTs - 364 * DAY_MS);
+            start.setDate(start.getDate() - start.getDay()); /* 일요일 정렬 */
+            var startTs = start.getTime();
+
+            /* 전체 날짜 배열을 미리 계산 (1일 간격) */
+            var days = [];
+            for (var ts = startTs; ts <= todayTs + 6 * DAY_MS; ts += DAY_MS) {
+                days.push(new Date(ts));
+            }
+
+            /* 주(week) 단위로 그룹핑: 7개씩 잘라서 columns */
+            var weeks = [];
+            for (var i = 0; i < days.length; i += 7) {
+                weeks.push(days.slice(i, i + 7));
+            }
+            var totalWeeks = weeks.length;
+
+            var cellSize = 13;
+            var cellGap = 3;
+            var colWidth = cellSize + cellGap;
+
+            /* ── 요일 라벨 ── */
+            var dayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+
+            var html = '<div class="cal-wrapper">';
+
+            html += '<div class="cal-days">';
+            for (var d = 0; d < 7; d++) {
+                html += '<div class="cal-day-label">' + dayLabels[d] + '</div>';
+            }
+            html += '</div>';
+
+            html += '<div class="cal-grid-wrapper">';
+
+            /* ── 월 라벨 ── */
+            html += '<div class="cal-months">';
+            var lastMonth = -1;
+            for (var w = 0; w < totalWeeks; w++) {
+                var m = weeks[w][0].getMonth();
+                if (m !== lastMonth) {
+                    html += '<div class="cal-month-label" style="position:absolute;left:' + (w * colWidth) + 'px">' + monthNames[m] + '</div>';
+                    lastMonth = m;
+                }
+            }
+            html += '</div>';
+
+            /* ── 셀 그리드 ── */
+            /* grid-auto-flow: column → 세로(7칸)를 먼저 채우고 다음 열로 이동 */
+            /* 따라서 출력 순서: col(주) → row(요일) */
+            html += '<div class="cal-grid">';
+            for (var col = 0; col < totalWeeks; col++) {
+                for (var row = 0; row < 7; row++) {
+                    var cell = weeks[col] && weeks[col][row];
+                    if (!cell || cell.getTime() > todayTs) {
+                        html += '<div class="cal-cell cal-cell-future"></div>';
+                    } else {
+                        html += '<div class="cal-cell" data-date="' + fmtDate(cell) + '" data-level="0"></div>';
+                    }
+                }
+            }
+            html += '</div></div></div>';
+
+            calendar.innerHTML = html;
+
+            /* ── 툴팁 ── */
+            var tooltip = document.createElement('div');
+            tooltip.className = 'cal-tooltip';
+            tooltip.style.display = 'none';
+            document.body.appendChild(tooltip);
+
+            calendar.addEventListener('mouseover', function (e) {
+                var c = e.target.closest('.cal-cell[data-date]');
+                if (c) {
+                    tooltip.textContent = c.dataset.date;
+                    tooltip.style.display = 'block';
+                    var r = c.getBoundingClientRect();
+                    var tw = tooltip.offsetWidth;
+                    var th = tooltip.offsetHeight;
+                    var left = r.left + r.width / 2 - tw / 2;
+                    var top = r.top - th - 6 + window.scrollY;
+                    if (left < 4) left = 4;
+                    if (left + tw > window.innerWidth - 4) left = window.innerWidth - tw - 4;
+                    tooltip.style.left = left + 'px';
+                    tooltip.style.top = top + 'px';
+                }
+            });
+
+            calendar.addEventListener('mouseout', function (e) {
+                if (e.target.closest('.cal-cell')) tooltip.style.display = 'none';
+            });
+
+            function fmtDate(d) {
+                return monthNames[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+            }
+        })();
+    </script>
 
 </div>
 </body>

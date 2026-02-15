@@ -31,6 +31,7 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 0.15rem;
+    margin-top: 1rem;
     padding: 0.9rem 1.3rem;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
@@ -255,6 +256,17 @@
     font-weight: 600;
 }
 
+/* ── Account Selector ── */
+.th-account-selector {
+    display: flex;
+    align-items: center;
+}
+
+.th-account-select {
+    min-width: 200px;
+    font-size: 0.85rem;
+}
+
 /* ── Empty State ── */
 .th-empty {
     padding: 3rem 2rem;
@@ -265,9 +277,28 @@
     transition: background 0.3s;
 }
 
+.th-empty svg {
+    color: var(--text-faint);
+    margin-bottom: 0.8rem;
+    opacity: 0.5;
+}
+
 .th-empty p {
     font-size: 0.88rem;
     color: var(--text-faint);
+}
+
+.th-empty-sub {
+    font-size: 0.78rem !important;
+    color: var(--text-faint);
+    margin-top: 0.3rem;
+}
+
+.th-empty-link {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 /* ── Responsive ── */
