@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>Trade History</title>
+    <link rel="stylesheet" th:href="@{/css/trading-history.css}"/>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <div class="th-header">
+        <div class="th-header-top">
+            <div>
+                <h1>Trade History</h1>
+                <p>트레이딩 기록을 확인하고 관리하세요.</p>
+            </div>
+            <div class="th-balance-card">
+                <span class="th-balance-label">Balance</span>
+                <span class="th-balance-value">$10,000.00</span>
+                <span class="th-balance-pnl positive">+$4,074.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="th-toolbar">
+        <div class="th-toolbar-left">
+            <select class="th-select">
+                <option value="">All Types</option>
+                <option value="stock">Stock</option>
+                <option value="crypto">Crypto</option>
+                <option value="futures">Futures</option>
+            </select>
+            <select class="th-select">
+                <option value="">All Positions</option>
+                <option value="long">LONG</option>
+                <option value="short">SHORT</option>
+            </select>
+        </div>
+        <div class="th-toolbar-right">
+            <button class="th-btn-add" type="button">+ New Trade</button>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="th-table-wrap">
+        <table class="th-table">
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Ticker</th>
+                <th>Position</th>
+                <th>P&amp;L</th>
+                <th>Memo</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>2026-02-15</td>
+                <td><span class="type-badge stock">Stock</span></td>
+                <td class="ticker">AAPL</td>
+                <td><span class="position-badge long">LONG</span></td>
+                <td class="positive">+$320.00</td>
+                <td class="memo">실적 발표 전 진입</td>
+            </tr>
+            <tr>
+                <td>2026-02-14</td>
+                <td><span class="type-badge crypto">Crypto</span></td>
+                <td class="ticker">BTC/USDT</td>
+                <td><span class="position-badge short">SHORT</span></td>
+                <td class="positive">+$1,280.00</td>
+                <td class="memo">저항선 도달 청산</td>
+            </tr>
+            <tr>
+                <td>2026-02-13</td>
+                <td><span class="type-badge stock">Stock</span></td>
+                <td class="ticker">TSLA</td>
+                <td><span class="position-badge long">LONG</span></td>
+                <td class="negative">-$186.00</td>
+                <td class="memo">손절</td>
+            </tr>
+            <tr>
+                <td>2026-02-12</td>
+                <td><span class="type-badge crypto">Crypto</span></td>
+                <td class="ticker">ETH/USDT</td>
+                <td><span class="position-badge long">LONG</span></td>
+                <td class="positive">+$540.00</td>
+                <td class="memo">지지선 반등</td>
+            </tr>
+            <tr>
+                <td>2026-02-11</td>
+                <td><span class="type-badge futures">Futures</span></td>
+                <td class="ticker">NQ 03-26</td>
+                <td><span class="position-badge short">SHORT</span></td>
+                <td class="negative">-$420.00</td>
+                <td class="memo">FOMC 발표 변동성</td>
+            </tr>
+            <tr>
+                <td>2026-02-10</td>
+                <td><span class="type-badge stock">Stock</span></td>
+                <td class="ticker">NVDA</td>
+                <td><span class="position-badge long">LONG</span></td>
+                <td class="positive">+$2,160.00</td>
+                <td class="memo">AI 수혜주 스윙</td>
+            </tr>
+            <tr>
+                <td>2026-02-09</td>
+                <td><span class="type-badge crypto">Crypto</span></td>
+                <td class="ticker">SOL/USDT</td>
+                <td><span class="position-badge short">SHORT</span></td>
+                <td class="positive">+$380.00</td>
+                <td class="memo">단기 이익 실현</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+</html>

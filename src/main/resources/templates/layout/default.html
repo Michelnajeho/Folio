@@ -49,6 +49,21 @@
         setTimeout(function () { overlay.style.display = 'none'; }, 300);
     }
 
+    /* Sidebar collapse toggle */
+    function toggleSidebarCollapse() {
+        var sidebar = document.querySelector('.sidebar');
+        var isCollapsed = sidebar.classList.toggle('collapsed');
+        localStorage.setItem('sidebar-collapsed', isCollapsed ? 'true' : 'false');
+    }
+
+    /* Restore sidebar state */
+    (function () {
+        if (localStorage.getItem('sidebar-collapsed') === 'true') {
+            var sidebar = document.querySelector('.sidebar');
+            if (sidebar) sidebar.classList.add('collapsed');
+        }
+    })();
+
     /* Page entry fade-in */
     (function () {
         var overlay = document.getElementById('pageEntryOverlay');

@@ -40,4 +40,4 @@ out/
 **/application.yml
 
 ### Docker ###
-documents/docker/
+#documents/docker/

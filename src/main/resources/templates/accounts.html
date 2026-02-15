@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>Accounts</title>
+    <link rel="stylesheet" th:href="@{/css/accounts.css}"/>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <div class="acc-header">
+        <div class="acc-header-top">
+            <div>
+                <h1>Accounts</h1>
+                <p>계좌를 등록하고 자산을 관리하세요.</p>
+            </div>
+            <button class="acc-btn-add" type="button" onclick="openAddModal()">+ New Account</button>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="acc-summary">
+        <div class="acc-summary-card">
+            <span class="acc-summary-label">Total Balance</span>
+            <span class="acc-summary-value">$23,847.50</span>
+            <span class="acc-summary-sub positive">+$3,847.50 total P&amp;L</span>
+        </div>
+        <div class="acc-summary-card">
+            <span class="acc-summary-label">Accounts</span>
+            <span class="acc-summary-value">3</span>
+            <span class="acc-summary-sub">active accounts</span>
+        </div>
+        <div class="acc-summary-card">
+            <span class="acc-summary-label">This Month P&amp;L</span>
+            <span class="acc-summary-value positive">+$1,240.00</span>
+            <span class="acc-summary-sub">from 12 trades</span>
+        </div>
+    </div>
+
+    <!-- Account Cards -->
+    <div class="acc-list">
+
+        <!-- Account 1 -->
+        <div class="acc-card">
+            <div class="acc-card-header">
+                <div class="acc-card-info">
+                    <span class="acc-card-name">Binance Futures</span>
+                    <span class="acc-card-broker">Binance</span>
+                </div>
+                <span class="acc-card-currency">USDT</span>
+            </div>
+            <div class="acc-card-body">
+                <div class="acc-card-row">
+                    <span class="acc-card-label">Initial Balance</span>
+                    <span class="acc-card-amount">10,000.00</span>
+                </div>
+                <div class="acc-card-row">
+                    <span class="acc-card-label">Deposits</span>
+                    <span class="acc-card-amount positive">+2,000.00</span>
+                </div>
+                <div class="acc-card-row">
+                    <span class="acc-card-label">Withdrawals</span>
+                    <span class="acc-card-amount negative">-500.00</span>
+                </div>
+                <div class="acc-card-row">
+                    <span class="acc-card-label">Trading P&amp;L</span>
+                    <span class="acc-card-amount positive">+2,340.00</span>
+                </div>
+                <div class="acc-card-divider"></div>
+                <div class="acc-card-row acc-card-total">
+                    <span class="acc-card-label">Current Balance</span>
+                    <span class="acc-card-amount">13,840.00</span>
+                </div>
+            </div>
+            <div class="acc-card-footer">
+                <button class="acc-card-btn" type="button">Deposit / Withdraw</button>
+                <button class="acc-card-btn secondary" type="button">Details</button>
+            </div>
+        </div>
+
+        <!-- Account 2 -->
+        <div class="acc-card">
+            <div class="acc-card-header">
+                <div class="acc-card-info">
+                    <span class="acc-card-name">Kiwoom Securities</span>
+                    <span class="acc-card-broker">Kiwoom</span>
+                </div>
+                <span class="acc-card-currency">KRW</span>
+            </div>
+            <div class="acc-card-body">
+                <div class="acc-card-row">
+                    <span class="acc-card-label">Initial Balance</span>
+                    <span class="acc-card-amount">5,000,000</span>
+                </div>
+                <div class="acc-card-row">
+                    <span class="acc-card-label">Deposits</span>
+                    <span class="acc-card-amount">0</span>
+                </div>
+                <div class="acc-card-row">
+                    <span class="acc-card-label">Withdrawals</span>
+                    <span class="acc-card-amount">0</span>
+                </div>
+                <div class="acc-card-row">
+                    <span class="acc-card-label">Trading P&amp;L</span>
+                    <span class="acc-card-amount positive">+820,000</span>
+                </div>
+                <div class="acc-card-divider"></div>
+                <div class="acc-card-row acc-card-total">
+                    <span class="acc-card-label">Current Balance</span>
+                    <span class="acc-card-amount">5,820,000</span>
+                </div>
+            </div>
+            <div class="acc-card-footer">
+                <button class="acc-card-btn" type="button">Deposit / Withdraw</button>
+                <button class="acc-card-btn secondary" type="button">Details</button>
+            </div>
+        </div>
+
+        <!-- Account 3 -->
+        <div class="acc-card">
+            <div class="acc-card-header">
+                <div class="acc-card-info">
+                    <span class="acc-card-name">Interactive Brokers</span>
+                    <span class="acc-card-broker">IBKR</span>
+                </div>
+                <span class="acc-card-currency">USD</span>
+            </div>
+            <div class="acc-card-body">
+                <div class="acc-card-row">
+                    <span class="acc-card-label">Initial Balance</span>
+                    <span class="acc-card-amount">5,000.00</span>
+                </div>
+                <div class="acc-card-row">
+                    <span class="acc-card-label">Deposits</span>
+                    <span class="acc-card-amount positive">+1,000.00</span>
+                </div>
+                <div class="acc-card-row">
+                    <span class="acc-card-label">Withdrawals</span>
+                    <span class="acc-card-amount">0</span>
+                </div>
+                <div class="acc-card-row">
+                    <span class="acc-card-label">Trading P&amp;L</span>
+                    <span class="acc-card-amount negative">-312.50</span>
+                </div>
+                <div class="acc-card-divider"></div>
+                <div class="acc-card-row acc-card-total">
+                    <span class="acc-card-label">Current Balance</span>
+                    <span class="acc-card-amount">5,687.50</span>
+                </div>
+            </div>
+            <div class="acc-card-footer">
+                <button class="acc-card-btn" type="button">Deposit / Withdraw</button>
+                <button class="acc-card-btn secondary" type="button">Details</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Empty State (hidden when there are accounts) -->
+    <!--
+    <div class="acc-empty">
+        <p>등록된 계좌가 없습니다. 새 계좌를 추가해보세요.</p>
+    </div>
+    -->
+
+</div>
+
+<script>
+    function openAddModal() {
+        // TODO: 계좌 등록 모달/폼 구현 예정
+        alert('계좌 등록 폼 구현 예정');
+    }
+</script>
+
+</body>
+</html>
